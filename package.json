@@ -58,6 +58,7 @@
   "dependencies": {
     "bootstrap": "^4.1.0",
     "chokidar": "^2.0.4",
+    "dotenv": "^6.0.0",
     "electron-compile": "^6.4.2",
     "electron-squirrel-startup": "^1.0.0",
     "jquery": "^3.3.1",

@@ -1,9 +1,10 @@
 const chokidar = require("chokidar");
 const fs = require("fs");
 const path = require("path");
-const { ROOT_PATH, IGNORED_PATH } = require("../const");
+const { ROOT_PATH, IGNORED_PATH, S3_BUCKE_NAME } = require("../const");
 const { syncToBucket } = require("./syncService");
 const { transformPathsFromArrayToRegexp } = require("../utils/helpers");
+const { deleteObjects } = require("./s3StorageService");
 
 const IGNORED_PATH_REGEXP = transformPathsFromArrayToRegexp(IGNORED_PATH);
 /** Promise version of fs.readdir
@@ -171,10 +172,10 @@ function watchFileUnlink() {
   });
 
   watch.on("ready", () => {
-    watch.on("unlink", filePath => {
-      console.log(`File removed at ${filePath}`);
+    watch.on("unlink", async filePath => {
       /** M1: Sync the file to S3 */
-      syncToBucket(path.dirname(filePath));
+      const output = await deleteObjects(S3_BUCKE_NAME, filePath);
+      console.log(`File is removed at: ${output}`);
       /** M2: save to the database */
     });
   });
