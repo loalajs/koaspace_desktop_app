@@ -1,0 +1,10 @@
+@import "custom";
+@import "~bootstrap/scss/bootstrap";
+
+html {
+  font-family: 'Montserrat', sans-serif;
+}
+
+#welcome_msg {
+  color: blue;
+}
