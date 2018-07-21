@@ -17,7 +17,8 @@
     "webpack:build": "npm run client-clean && node_modules/.bin/webpack --config client/webpack.config.js --mode production",
     "webpack:watch": "node_modules/.bin/webpack --config client/webpack.config.js -w",
     "test": "node_modules/.bin/jest",
-    "dev": "nodemon app/koaspace/index.js"
+    "dev-nodemon": "nodemon app/koaspace/index.js",
+    "dev-node": "node app/koaspace/index.js"
   },
   "keywords": [],
   "author": "jameslo",

@@ -14,6 +14,12 @@ function execPromise(command) {
   });
 }
 
+function transformPathsFromArrayToRegexp(paths) {
+  const regexp = paths.join("|");
+  return new RegExp(regexp, "ig");
+}
+
 module.exports = {
-  execPromise
+  execPromise,
+  transformPathsFromArrayToRegexp
 };
