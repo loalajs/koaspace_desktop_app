@@ -1,6 +1,5 @@
-require("dotenv").config();
 const AWS = require("aws-sdk");
-const { S3_PROFILE, S3_REGION, S3_API_VERSION } = require(".../const");
+const { S3_PROFILE, S3_REGION, S3_API_VERSION } = require("../const");
 
 /** Setup AWS credentials */
 const credentials = new AWS.SharedIniFileCredentials({
@@ -60,7 +59,7 @@ function uploadS3(bucketName, fileKey, fileBody) {
 
 /** Delete multiple objects from S3
  * @param bucketName: String
- * @param fileKey: [] { Key: string, VersionId?: string }
+ * @param fileKey: Files[] { Key: string, VersionId?: string }
  */
 function deleteObjects(bucketName, filesKey) {
   return new Promise((resolve, reject) => {
@@ -73,7 +72,9 @@ function deleteObjects(bucketName, filesKey) {
     };
     s3.deleteObjects(params, (err, data) => {
       if (err) {
-        reject(new Error(`Error occurs when delete objects from S3`));
+        reject(
+          new Error(`Error occurs when delete objects from S3: ${err.message}`)
+        );
       } else {
         resolve(data);
       }

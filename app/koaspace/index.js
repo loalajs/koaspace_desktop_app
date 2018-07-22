@@ -5,7 +5,8 @@ const {
   initialFilesScan,
   watchFileChange,
   watchFileCreation,
-  watchFileUnlink
+  watchFileUnlink,
+  intitalFilesSync
 } = require("./services/filesService");
 const { IGNORED_PATH } = require("./const");
 // listFilesFromBucket();
@@ -15,6 +16,7 @@ const { IGNORED_PATH } = require("./const");
 initialFilesScan(ROOT_PATH, { filterDirs: IGNORED_PATH });
 
 /** Testting watch files - unlink, add and change */
+// intitalFilesSync();
 watchFileChange();
 watchFileCreation();
 watchFileUnlink();
