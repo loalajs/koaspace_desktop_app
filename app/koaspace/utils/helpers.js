@@ -3,6 +3,7 @@ const path = require("path");
 const { ROOT_PATH } = require("../const");
 
 /** execPromise is promisified exec function from NodeJs child_process
+ * * TODO: Use spawm instead of exec from child_process as exec buffer data in memory, which may cause memory leaks
  * @param command: string
  * command is shell command such ls, mkdir and etc...
  */
@@ -12,9 +13,9 @@ function execPromise(command) {
       if (error) {
         reject(error);
         return;
+      } else if (stderr) {
+        reject(stderr.trim());
       }
-      /** Just testing what is output */
-      if (stderr) console.log(`stderr: ${stderr.trim()}`);
       resolve(stdout.trim());
     });
   });
