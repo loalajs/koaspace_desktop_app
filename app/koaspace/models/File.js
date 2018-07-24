@@ -1,4 +1,5 @@
-const { sequelize, Sequelize } = require("../database/setup");
+const { DataTypes } = require("sequelize");
+const { sequelize } = require("../database/setup");
 const { User } = require("./User");
 const { s3BucketFilePathbuilder } = require("../utils/helpers");
 const { S3_BUCKET_URL } = require("../const");
@@ -7,37 +8,37 @@ const File = sequelize.define(
   "File",
   {
     id: {
-      type: Sequelize.INTEGER(12),
+      type: DataTypes.INTEGER(12),
       primaryKey: true,
       autoIncrement: true
     },
     filename: {
-      type: Sequelize.String,
+      type: DataTypes.TEXT,
       allowNull: false
     },
     basedir: {
-      type: Sequelize.String,
+      type: DataTypes.TEXT,
       allowNull: false
     },
     counter: {
-      type: Sequelize.INTEGER,
+      type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: "0"
     },
     remoteUpdated: {
-      type: Sequelize.BOOLEAN,
+      type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false
     },
     User_id: {
-      type: Sequelize.INTEGER,
+      type: DataTypes.INTEGER,
       reference: {
         model: User,
         key: "id"
       }
     },
-    createdAt: Sequelize.DATE,
-    updatedAt: Sequelize.DATE
+    createdAt: DataTypes.DATE,
+    updatedAt: DataTypes.DATE
   },
   {
     getterMethods: {

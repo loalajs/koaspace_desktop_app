@@ -1,28 +1,29 @@
-const { sequelize, Sequelize } = require("../database/setup");
+const { DataTypes } = require("sequelize");
+const { sequelize } = require("../database/setup");
 
 const User = sequelize.define("User", {
   id: {
-    type: Sequelize.INTEGER(12),
+    type: DataTypes.INTEGER(12),
     primaryKey: true,
     autoIncrement: true
   },
   username: {
-    type: Sequelize.String(25),
+    type: DataTypes.STRING(25),
     allowNull: false,
     unique: true
   },
   password: {
-    type: Sequelize.String(255),
+    type: DataTypes.STRING(255),
     allowNull: true,
     unique: true
   },
   profileId: {
-    type: Sequelize.String(10),
+    type: DataTypes.STRING(10),
     allowNull: false,
     unique: true
   },
   email: {
-    type: Sequelize.String(80),
+    type: DataTypes.STRING(80),
     unique: true,
     allowNull: true,
     validate: {
@@ -30,26 +31,26 @@ const User = sequelize.define("User", {
     }
   },
   displayName: {
-    type: Sequelize.String(80),
+    type: DataTypes.STRING(80),
     allowNull: true
   },
   /** Control User Login Permission */
   profileActive: {
-    type: Sequelize.BOOLEAN,
+    type: DataTypes.BOOLEAN,
     allowNull: false,
     defaultValue: false
   },
   /** Control User Authorization that define functionality available and data visibility  */
   securityGroup: {
-    type: Sequelize.String(20),
+    type: DataTypes.STRING(20),
     allowNull: false,
     defaultValue: "User",
     validate: {
       isIn: [["User", "Admin"]]
     }
   },
-  createdAt: Sequelize.DATE,
-  updatedAt: Sequelize.DATE
+  createdAt: DataTypes.DATE,
+  updatedAt: DataTypes.DATE
 });
 
 module.exports = {

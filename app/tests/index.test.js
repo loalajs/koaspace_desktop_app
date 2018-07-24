@@ -11,6 +11,7 @@ const {
 } = require("../koaspace/services/filesService");
 const { S3_BUCKET_URL, S3_BUCKET_NAME } = require("../koaspace/const");
 const { sequelize } = require("../koaspace/database/setup");
+const { File, User } = require("../koaspace/models/index");
 
 describe("S3 Module", () => {
   /** TEST s3BucketFilePathbuilder Test the s3 target path generation
@@ -89,8 +90,8 @@ describe("DB Moudle", () => {
     try {
       await sequelize.authenticate();
       console.log(`Connection has been established`);
-      sequelize.close();
-      console.log(`Connection Close`);
+      // sequelize.close();
+      // console.log(`Connection Close`);
       expect(true).toBeTruthy();
     } catch (err) {
       throw new Error(
@@ -98,4 +99,21 @@ describe("DB Moudle", () => {
       );
     }
   });
+
+  test("[ DB Tables Sync Test ]", async () => {
+    try {
+      await User.sync();
+      await File.sync();
+      expect(true).toBeTruthy();
+    } catch (err) {
+      throw new Error(
+        `Error occurs in DB Module and in Sync test: ${err.message}`
+      );
+    }
+  });
+
+  test("[ Add Dummy User ]", () => {});
+  test("[ Update Dummy User ]", () => {});
+  test("[ Get Dummy User ]", () => {});
+  test("[ Remove Dummy User ]", () => {});
 });
