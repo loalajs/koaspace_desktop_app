@@ -50,33 +50,19 @@ describe("S3 Module", () => {
     );
     try {
       await writeFilePromise(tempSourceFilePath, "Hello world");
-      console.log(
-        `Test case: deleteObjects - file was created at source :${tempSourceFilePath}`
-      );
-
-      console.log(`Debug: S3_BUCKET_NAME: ${S3_BUCKET_NAME}`);
-
       const data = await readFilePromise(tempSourceFilePath);
       const targetFileCreatedResult = await putObject(
         S3_BUCKET_NAME,
         tempTargetFilePath,
         data
       );
-      console.log(
-        `Test case: deleteObjects - file was created at target: ${tempTargetFilePath} with result: ${targetFileCreatedResult}`
-      );
-
+      expect(targetFileCreatedResult).toBeTruthy();
       const targetFileDeleteResult = await deleteObjects(S3_BUCKET_NAME, [
         { Key: tempTargetFilePath }
       ]);
-      console.log(
-        `Test case : deleteObjects - file was remove at target: ${tempTargetFilePath} with result: ${targetFileDeleteResult}`
-      );
+      expect(targetFileDeleteResult).toBeTruthy();
 
       expect(await unlinkPromise(tempSourceFilePath)).toBeTruthy();
-      console.log(
-        `Test case deleteObjects - file was removed at source: ${tempSourceFilePath}`
-      );
     } catch (err) {
       throw new Error(
         `Error occurs in test case: deleteObjects : ${err.message}`
@@ -86,12 +72,10 @@ describe("S3 Module", () => {
 });
 
 describe("DB Moudle", () => {
+  /** Testing db connection */
   test("[ DB Setup Connection Test ]", async () => {
     try {
       await sequelize.authenticate();
-      console.log(`Connection has been established`);
-      // sequelize.close();
-      // console.log(`Connection Close`);
       expect(true).toBeTruthy();
     } catch (err) {
       throw new Error(
@@ -100,6 +84,7 @@ describe("DB Moudle", () => {
     }
   });
 
+  /** Testing db tables sync */
   test("[ DB Tables Sync Test ]", async () => {
     try {
       await User.sync();
@@ -112,8 +97,63 @@ describe("DB Moudle", () => {
     }
   });
 
-  test("[ Add Dummy User ]", () => {});
-  test("[ Update Dummy User ]", () => {});
-  test("[ Get Dummy User ]", () => {});
-  test("[ Remove Dummy User ]", () => {});
+  /** Testing adding a dummy user */
+  test("[ Add Dummy User ]", async () => {
+    try {
+      const userParams = {
+        username: "james",
+        password: "james123",
+        profileId: "KS00000001",
+        email: "james@example.com",
+        displayName: "James",
+        securityGroup: "Admin"
+      };
+      const newUser = await User.create(userParams);
+      console.log(`New User: ${newUser.username}`);
+    } catch (err) {
+      throw new Error(
+        `Error occurs in DB Test - Add Dummy User: ${err.message}`
+      );
+    }
+  });
+  test("[ Update Dummy User ]", async () => {
+    try {
+      const set = {
+        displayName: "James Lo",
+        profileActive: true
+      };
+      const [row] = await User.update(set, {
+        where: { username: "james" }
+      });
+      expect(row).toBeGreaterThan(0);
+    } catch (err) {
+      throw new Error(
+        `Error occurs in DB Module - Update Dummy User: ${err.message}`
+      );
+    }
+  });
+  test("[ Get Dummy User ]", async () => {
+    try {
+      const user = await User.findOne({ where: { username: "james" } });
+      expect(user.username).toBe("james");
+    } catch (err) {
+      throw new Error(
+        `Error occurs in DB Module - Get Dummy User: ${err.message}`
+      );
+    }
+  });
+  test("[ Remove Dummy User ]", async () => {
+    try {
+      const response = await User.destroy({
+        where: {
+          username: "james"
+        }
+      });
+      expect(response).toBeGreaterThanOrEqual(0);
+    } catch (err) {
+      throw new Error(
+        `Error occurs in DB Module - Remove Dummy User: ${err.message}`
+      );
+    }
+  });
 });
