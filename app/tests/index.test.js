@@ -109,13 +109,46 @@ describe("DB Moudle", () => {
         securityGroup: "Admin"
       };
       const newUser = await User.create(userParams);
-      console.log(`New User: ${newUser.username}`);
+      expect(newUser.username).toBe("james");
     } catch (err) {
       throw new Error(
         `Error occurs in DB Test - Add Dummy User: ${err.message}`
       );
     }
   });
+
+  test("[ Add Duplicate Dummy User ]", async () => {
+    try {
+      const duplicatedUserParam = {
+        username: "james",
+        password: "james123",
+        profileId: "KS00000001",
+        email: "james@example.com",
+        displayName: "James",
+        securityGroup: "Admin"
+      };
+      await expect(User.create(duplicatedUserParam)).rejects.toThrow();
+    } catch (err) {
+      expect(err.message).toBeTruthy();
+    }
+  });
+
+  test("[ Add Invalid Dummy User ]", async () => {
+    try {
+      const invalidUser = {
+        username: "james123",
+        password: "james123",
+        profileId: "KS00000001",
+        email: "invalidemail",
+        displayName: "James",
+        securityGroup: "Admin"
+      };
+      await expect(User.create(invalidUser)).rejects.toThrow();
+    } catch (err) {
+      expect(err.message).toBeTruthy();
+    }
+  });
+
   test("[ Update Dummy User ]", async () => {
     try {
       const set = {
