@@ -1,6 +1,11 @@
 const { execPromise } = require("../utils/helpers");
 
-const { S3_SYNC_EXCLUDE, S3_PROFILE } = require("../const");
+const {
+  S3_SYNC_EXCLUDE,
+  S3_PROFILE,
+  ROOT_PATH,
+  S3_BUCKET_URL
+} = require("../const");
 
 /** rsync to s3
  * @param sourceDirPath: string
@@ -23,11 +28,23 @@ async function syncToBucket(
     const command = `aws s3 sync ${sourceDirPath} ${targetPath} ${S3_SYNC_EXCLUDE} --profile ${S3_PROFILE} ${deleteOption}`;
     const result = await execPromise(command);
     console.log(`aws s3 sync stdout: ${result}`);
+    return result;
   } catch (err) {
     throw new Error(`Error occurs in aws s3 sync: ${err.message}`);
   }
 }
 
+/** When app is initiated, sync all the files up to S3
+ * aws s3 sync will manage the files sync (by file size and timestamp)
+ */
+function intitalFilesSync() {
+  syncToBucket(ROOT_PATH, S3_BUCKET_URL, {
+    shouldDelete: true,
+    isInitial: true
+  });
+}
+
 module.exports = {
-  syncToBucket
+  syncToBucket,
+  intitalFilesSync
 };

@@ -8,7 +8,7 @@ const {
   unlinkPromise,
   readFilePromise,
   writeFilePromise
-} = require("../koaspace/services/filesService");
+} = require("../koaspace/utils/fsPromisify");
 const { S3_BUCKET_URL, S3_BUCKET_NAME } = require("../koaspace/const");
 const { sequelize } = require("../koaspace/database/setup");
 const { File, User } = require("../koaspace/models/index");
