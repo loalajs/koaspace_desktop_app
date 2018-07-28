@@ -15,4 +15,11 @@ describe("DB Moudle", () => {
     await expect(User.sync()).resolves.toBeTruthy();
     await expect(File.sync()).resolves.toBeTruthy();
   });
+
+  /** Find seedUser and if not exist create one in development mode */
+  test("[ DB Import Seed User if not existed ]", async () => {
+    expect.assertions(1);
+    const user = await createSeedUser();
+    expect(user.username).toBe("james.lo");
+  });
 });

@@ -3,8 +3,9 @@ const { User } = require("../koaspace/models/User");
 describe("[ User Model ]", () => {
   /** Testing adding a dummy user */
   test("[ Add Dummy User ]", async () => {
+    expect.assertions(1);
     const userParams = {
-      username: "james",
+      username: "james321",
       password: "james123",
       profileId: "KS00000001",
       email: "james@example.com",
@@ -12,12 +13,13 @@ describe("[ User Model ]", () => {
       securityGroup: "Admin"
     };
     const newUser = await User.create(userParams);
-    expect(newUser.username).toBe("james");
+    expect(newUser.username).toBe("james321");
   });
 
   test("[ Add Duplicate Dummy User ]", async () => {
+    expect.assertions(1);
     const duplicatedUserParam = {
-      username: "james",
+      username: "james321",
       password: "james123",
       profileId: "KS00000001",
       email: "james@example.com",
@@ -28,6 +30,7 @@ describe("[ User Model ]", () => {
   });
 
   test("[ Add Invalid Dummy User ]", async () => {
+    expect.assertions(1);
     const invalidUser = {
       username: "james123",
       password: "james123",
@@ -40,24 +43,27 @@ describe("[ User Model ]", () => {
   });
 
   test("[ Update Dummy User ]", async () => {
+    expect.assertions(1);
     const set = {
       displayName: "James Lo",
       profileActive: true
     };
     const [row] = await User.update(set, {
-      where: { username: "james" }
+      where: { username: "james321" }
     });
     expect(row).toBeGreaterThan(0);
   });
   test("[ Get Dummy User ]", async () => {
-    const user = await User.findOne({ where: { username: "james" } });
-    expect(user.username).toBe("james");
+    expect.assertions(1);
+    const user = await User.findOne({ where: { username: "james321" } });
+    expect(user.username).toBe("james321");
   });
   test("[ Remove Dummy User ]", async () => {
+    expect.assertions(1);
     await expect(
       User.destroy({
         where: {
-          username: "james"
+          username: "james321"
         }
       })
     ).resolves.toBeTruthy();
