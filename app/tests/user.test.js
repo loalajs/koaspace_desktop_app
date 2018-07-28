@@ -6,7 +6,7 @@ describe("[ User Model ]", () => {
     expect.assertions(1);
     const userParams = {
       username: "james321",
-      password: "james123",
+      password: "james321",
       profileId: "KS00000001",
       email: "james@example.com",
       displayName: "James",
@@ -20,7 +20,7 @@ describe("[ User Model ]", () => {
     expect.assertions(1);
     const duplicatedUserParam = {
       username: "james321",
-      password: "james123",
+      password: "james321",
       profileId: "KS00000001",
       email: "james@example.com",
       displayName: "James",
@@ -33,7 +33,7 @@ describe("[ User Model ]", () => {
     expect.assertions(1);
     const invalidUser = {
       username: "james123",
-      password: "james123",
+      password: "james321",
       profileId: "KS00000001",
       email: "invalidemail",
       displayName: "James",

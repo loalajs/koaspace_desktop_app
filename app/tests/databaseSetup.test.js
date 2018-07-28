@@ -1,6 +1,7 @@
 const { sequelize } = require("../koaspace/database/setup");
 const { User } = require("../koaspace/models/User");
 const { File } = require("../koaspace/models/File");
+const { createSeedUser } = require("../koaspace/database/seed");
 
 describe("DB Moudle", () => {
   /** Testing db connection */
@@ -19,7 +20,8 @@ describe("DB Moudle", () => {
   /** Find seedUser and if not exist create one in development mode */
   test("[ DB Import Seed User if not existed ]", async () => {
     expect.assertions(1);
-    const user = await createSeedUser();
+    await createSeedUser();
+    const user = await User.findOne({ where: { username: "james.lo" } });
     expect(user.username).toBe("james.lo");
   });
 });
