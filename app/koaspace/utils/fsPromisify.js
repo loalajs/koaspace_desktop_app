@@ -48,6 +48,7 @@ function promiseStat(filePath) {
  * @param options: Config object for the readdir
  * @prop options.filterDirs: String[]
  * @return string[] as files path
+ * @TODO: Chnage to read stream version
  */
 function recurReaddir(dir, options = {}) {
   return new Promise(async (resolve, reject) => {
