@@ -1,6 +1,5 @@
 const { sequelize } = require("../koaspace/database/setup");
-const { User } = require("../koaspace/models/User");
-const { File } = require("../koaspace/models/File");
+const { File, User } = require("../koaspace/models/index");
 const { createSeedUser } = require("../koaspace/database/seed");
 
 describe("DB Moudle", () => {

@@ -126,5 +126,6 @@ module.exports = {
   recurReaddir,
   writeFilePromise,
   readFilePromise,
-  unlinkPromise
+  unlinkPromise,
+  promiseStat
 };

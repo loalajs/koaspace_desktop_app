@@ -1,4 +1,4 @@
-const { User } = require("../koaspace/models/User");
+const { User } = require("../koaspace/models/index");
 
 describe("[ User Model ]", () => {
   /** Testing adding a dummy user */

@@ -62,6 +62,7 @@ function watchFileCreation() {
           S3_BUCKET_URL,
           sourceFileDir
         );
+        /** TODO: Refactor syncToBucket to another module */
         syncToBucket(sourceFileDir, targetFileDir);
         /**  M2: save it the database
          */
@@ -89,6 +90,7 @@ function watchFileChange() {
           S3_BUCKET_URL,
           sourceFileDir
         );
+        /** TODO: Refactor syncToBucket to another module */
         syncToBucket(sourceFileDir, targetFileDir);
         /** M2: save to the database */
       });
@@ -109,6 +111,7 @@ function watchFileUnlink() {
     watch.on("unlink", async filePath => {
       /** M1: Sync the file to S3 */
       try {
+        /** TODO: Move following action to another module */
         const targetFilePath = s3BucketFilePathbuilder(S3_BUCKET_URL, filePath);
         const output = await deleteObjects(S3_BUCKET_NAME, [
           { Key: targetFilePath }
