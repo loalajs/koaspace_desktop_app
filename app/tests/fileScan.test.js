@@ -14,6 +14,13 @@ const {
   watchFileCreation,
   scanFileToDB
 } = require("../koaspace/services/filesService");
+const { File } = require("../koaspace/models/index");
+const { sequelize } = require("../koaspace/database/setup");
+const { Op } = require("sequelize");
+
+/** TODO:
+ * Create a function helper for creating a temp file and save the file meta data to the db
+ */
 
 /** Scan file is process that save the file metadata to database before it is sync to s3 */
 describe(`[ File Scan Module ]`, () => {
@@ -22,6 +29,7 @@ describe(`[ File Scan Module ]`, () => {
    * Step 2. Get the file stat for each individual file from Step 1.
    * Step 3. Save all the file metadata to the database in a bulk
    * Step 4. Reject if error is detected from a file during database importing
+   * Step 5. Delete all files from database
    */
   test(`[ Initial Directory Scan - Add all file to database ]`, async () => {
     expect.assertions(1);
@@ -31,19 +39,29 @@ describe(`[ File Scan Module ]`, () => {
     });
     /** Step 2 */
     const fileStatList = await getFileStatList(filePathList);
-    expect(fileStatList).toBeDefined();
+    expect(fileStatList).toBeTruthy();
 
-    /** Step 3 */
-    const result = await saveFileList(fileStatList);
+    /** Step 3 & 4 */
+    await expect(File.bulkCreate(fileStatList)).resolves.toBeTruthy();
 
-    expect(result).toBeDefined();
+    /** Step 5 */
+    const queryInterface = sequelize.getQueryInterface();
+    await expect(
+      queryInterface.bulkDelete("File", {
+        where: {
+          filePath: {
+            [Op.in]: filePathList
+          }
+        }
+      })
+    ).resolves.toBeTruthy();
   });
-
   /** Scan new file to database
    * Step 1: Register the files watcher
    * Step 2: Create a file
    * Step 3: Check if the file has been saved to db
    * Step 4. Delete the file
+   * FIXME: watchFileCreation MUST BE MODIFIED TO ABLE TO PASS A PROMISE FILE PATH
    * */
   test(`[ Watch Files Changes - Add one to database ]`, async () => {
     expect.assertions(7);
@@ -53,11 +71,12 @@ describe(`[ File Scan Module ]`, () => {
 
     /** Create a file */
     await writeFilePromise(tempFilePath, "hello world");
-    const fileStat = await promiseStat(tempFilePath);
+    const fileStat = await getFileStat(tempFilePath);
     /** Should return the filestat that contains properties
      * @prop filePath: string
      * @prop filename: string
      * @prop filesize: number
+     * @prop counter: number
      * @prop filectime: Date
      * @prop filemtime: Date
      */
@@ -66,6 +85,7 @@ describe(`[ File Scan Module ]`, () => {
     expect(fileStat).toHaveProperty("filesize");
     expect(fileStat).toHaveProperty("filectime");
     expect(fileStat).toHaveProperty("filemtime");
+    expect(fileStat).toHaveProperty("counter");
     /** Step 3: Should return the newly added file */
     await expect(scanFileToDB(fileStat)).resolves.toBeDefined();
 
@@ -73,9 +93,57 @@ describe(`[ File Scan Module ]`, () => {
     await expect(unlinkPromise(tempFilePath).resolves.toBeTruthy());
   });
 
-  /** Update a file from database */
+  /** Update a file from database
+   * 1. Create a temp file and save it to the database
+   * 2. Step - Register for file watcher
+   * 3. Append some contents to a temp file
+   * 4. Get the temp file path from the file watcher
+   * 5. Update the temp file counter in the database
+   * 6. Delete the temp file
+   */
   test(`[ Watch Files Changes - Update one file from database ]`, async () => {
+    /** FIXME: watchFileChange should be modified to be able to pass a promise file path */
+    /** 1.1 Create temp file */
+    const tempFilePath = path.resolve(process.cwd(), "app", "temp1.txt");
+    await writeFilePromise(tempFilePath, "Hello World");
+
+    /** 1.2 Save temp file to db
+     * TODO: Modify the DB Schema
+     */
+    const tempFileStat = await getFileStat(tempFilePath, { counterInit: true });
+    expect(tempFileStat).toHaveProperty("filepath");
+    expect(tempFileStat).toHaveProperty("filename");
+    expect(tempFileStat).toHaveProperty("filesize");
+    expect(tempFileStat).toHaveProperty("filectime");
+    expect(tempFileStat).toHaveProperty("filemtime");
+    expect(tempFileStat).toHaveProperty("counter");
+
+    const fileCurrentCounter = tempFileStat.counter;
+    expect(fileCurrentCounter).toBeGreaterThanOrEqual(0);
+
+    await expect(File.create(tempFileStat)).resolves.toBeTruthy();
+
+    /** 2. FIXME: File change implementation */
     await watchFileChange();
+
+    /** 3. Append some contents to temp file */
+    await expect(
+      appendContents(tempFilePath, "Newly append contents")
+    ).resolves.toBeTruthy();
+
+    /** 4.1 at this moment the file has been updated in database */
+    const updatedFilePath = await waitForFileChange();
+    expect(updatedFilePath).toBeTruthy();
+    await expect(ifFileExisted(updatedFilePath)).resolves.toBeTruthy();
+
+    /** 5. Find the file by updatedFilePath and update its counter */
+    const updatedFileCounter = await getFile(updatedFilePath);
+    expect(updatedFileCounter).toBeGreaterThanOrEqual(1);
+    expect(updatedFileCounter - fileCurrentCounter).toBe(1);
+
+    /** 6.Delete file from DB */
+    await expect(deleteFile(updatedFilePath)).resolves.toBeTruthy();
+    await expect(unlinkFile(updatedFilePath)).resolves.toBeTruthy();
   });
 
   /** Delete a file from database */
