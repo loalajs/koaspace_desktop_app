@@ -134,21 +134,28 @@ describe(`[ File Scan Module ]`, () => {
     /** 4.1 at this moment the file has been updated in database */
     const updatedFilePath = await waitForFileChange();
     expect(updatedFilePath).toBeTruthy();
+    expect(updatedFilePath).toBe(tempFilePath);
     await expect(ifFileExisted(updatedFilePath)).resolves.toBeTruthy();
 
     /** 5. Find the file by updatedFilePath and update its counter */
     const updatedFileCounter = await getFile(updatedFilePath);
     expect(updatedFileCounter).toBeGreaterThanOrEqual(1);
     expect(updatedFileCounter - fileCurrentCounter).toBe(1);
-
-    /** 6.Delete file from DB */
-    await expect(deleteFile(updatedFilePath)).resolves.toBeTruthy();
-    await expect(unlinkFile(updatedFilePath)).resolves.toBeTruthy();
   });
 
-  /** Delete a file from database */
+  /** Delete a file from database
+   * 1. Listen for file unlink event
+   * 2. After unlink occurs, get the deleted file path
+   * @FIXME: Update waitForFileUnlink function
+   */
   test(`[ Watch Files Changes - Delete one file from database ]`, async () => {
     await watchFileUnlink();
+    const tempFilePath = path.resolve(process.cwd(), "app", "temp1.txt");
+    await expect(unlinkFile(tempFilePath)).resolves.toBeTruthy();
+    const deletedFilePath = await waitForFileUnlink();
+    expect(deletedFilePath).toBeTruthy();
+    expect(deletedFilePath).toBe(tempFilePath);
+    await expect(deleteFile(deletedFilePath)).resolves.toBeTruthy();
   });
 
   /**  */
