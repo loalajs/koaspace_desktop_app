@@ -1,7 +1,8 @@
 const path = require("path");
 const {
   writeFilePromise,
-  unlinkPromise
+  unlinkPromise,
+  appendFilePromise
 } = require("../../koaspace/utils/fsPromisify");
 
 /** Get temp path */
@@ -23,7 +24,14 @@ function deleteTestFile(filename) {
   return unlinkPromise(fullPath);
 }
 
+/** append test contents to a test file */
+function appendTestContents(filename, contents) {
+  const filePath = getTempPath(filename);
+  return appendFilePromise(filePath, contents);
+}
+
 module.exports = {
   createTestFile,
-  deleteTestFile
+  deleteTestFile,
+  appendTestContents
 };

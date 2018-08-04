@@ -4,6 +4,11 @@ const { User } = require("./User");
 const { s3BucketFilePathbuilder } = require("../utils/helpers");
 const { S3_BUCKET_URL } = require("../const");
 
+/** TODO: Added props
+ * filesize: int
+ * filectime: Date
+ * filemtime: Date
+ */
 const File = sequelize.define(
   "File",
   {

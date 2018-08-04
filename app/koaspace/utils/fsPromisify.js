@@ -35,11 +35,31 @@ function promiseReaddir(filePath, options = {}) {
 function promiseStat(filePath) {
   return new Promise((resolve, reject) => {
     fs.stat(filePath, (err, stats) => {
-      if (err) reject(err);
-      resolve(stats);
+      if (err == null) {
+        resolve(stats);
+      } else {
+        reject(err);
+      }
     });
   }).catch(err => {
-    throw new Error(`Unexpected error in promiseStat: ${err}`);
+    throw new Error(`Error occurs in promiseStat: ${err}`);
+  });
+}
+
+/** ifFileExisted use fs.stat to test file's existence */
+function ifFileExisted(filePath) {
+  return new Promise((resolve, reject) => {
+    fs.stat(filePath, err => {
+      if (err == null) {
+        resolve(true);
+      } else if (err.code === "ENOENT") {
+        resolve(false);
+      } else {
+        reject(err);
+      }
+    });
+  }).catch(err => {
+    throw new Error(`Error occurs in ifFileExisted: ${err}`);
   });
 }
 
@@ -123,10 +143,29 @@ function unlinkPromise(filename) {
   });
 }
 
+/** Promise verison of fs.appendFile */
+function appendFilePromise(
+  filePath,
+  data,
+  option = { encoding: "utf8", mode: "0o666", flag: "a" }
+) {
+  return new Promise((resolve, reject) => {
+    fs.appendFile(filePath, data, option, err => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(true);
+      }
+    });
+  });
+}
+
 module.exports = {
   recurReaddir,
   writeFilePromise,
   readFilePromise,
   unlinkPromise,
-  promiseStat
+  promiseStat,
+  appendFilePromise,
+  ifFileExisted
 };

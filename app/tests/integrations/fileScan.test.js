@@ -3,17 +3,23 @@ const { ROOT_PATH, IGNORED_PATH } = require("../koaspace/const");
 const {
   writeFilePromise,
   unlinkPromise,
-  promiseStat,
-  recurReaddir
+  recurReaddir,
+  ifFileExisted
 } = require("../koaspace/utils/fsPromisify");
 const {
-  getFileStatList,
-  saveFileList,
   watchFileUnlink,
   watchFileChange,
   watchFileCreation,
   scanFileToDB
 } = require("../koaspace/services/filesWatchService");
+
+const { appendTestContents } = "../helpers/index";
+
+const {
+  getFileStat,
+  saveFileList,
+  getFileStatList
+} = "../koaspace/services/filesService.js";
 const { File } = require("../koaspace/models/index");
 const { sequelize } = require("../koaspace/database/setup");
 const { Op } = require("sequelize");
@@ -71,20 +77,7 @@ describe(`[ File Scan Module ]`, () => {
     /** Create a file */
     await writeFilePromise(tempFilePath, "hello world");
     const fileStat = await getFileStat(tempFilePath);
-    /** Should return the filestat that contains properties
-     * @prop filePath: string
-     * @prop filename: string
-     * @prop filesize: number
-     * @prop counter: number
-     * @prop filectime: Date
-     * @prop filemtime: Date
-     */
-    expect(fileStat).toHaveProperty("filepath");
-    expect(fileStat).toHaveProperty("filename");
-    expect(fileStat).toHaveProperty("filesize");
-    expect(fileStat).toHaveProperty("filectime");
-    expect(fileStat).toHaveProperty("filemtime");
-    expect(fileStat).toHaveProperty("counter");
+
     /** Step 3: Should return the newly added file */
     await expect(scanFileToDB(fileStat)).resolves.toBeDefined();
 
@@ -110,12 +103,6 @@ describe(`[ File Scan Module ]`, () => {
      * TODO: Modify the DB Schema
      */
     const tempFileStat = await getFileStat(tempFilePath, { counterInit: true });
-    expect(tempFileStat).toHaveProperty("filepath");
-    expect(tempFileStat).toHaveProperty("filename");
-    expect(tempFileStat).toHaveProperty("filesize");
-    expect(tempFileStat).toHaveProperty("filectime");
-    expect(tempFileStat).toHaveProperty("filemtime");
-    expect(tempFileStat).toHaveProperty("counter");
 
     const fileCurrentCounter = tempFileStat.counter;
     expect(fileCurrentCounter).toBeGreaterThanOrEqual(0);
@@ -127,7 +114,7 @@ describe(`[ File Scan Module ]`, () => {
 
     /** 3. Append some contents to temp file */
     await expect(
-      appendContents(tempFilePath, "Newly append contents")
+      appendTestContents(tempFilePath, "Newly append contents")
     ).resolves.toBeTruthy();
 
     /** 4.1 at this moment the file has been updated in database */
