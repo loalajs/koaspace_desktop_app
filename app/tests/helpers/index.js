@@ -10,9 +10,12 @@ function getTempPath(filename) {
 }
 
 /** Create temp file in the /app directory */
-function createTestFile(filename) {
+async function createTestFile(filename) {
   const fullPath = getTempPath(filename);
-  return writeFilePromise(fullPath, "Hello world!");
+  if (await writeFilePromise(fullPath, "Hello world!")) {
+    return fullPath;
+  }
+  throw new Error(`Cannot create Test File`);
 }
 /** Delete temp in the /app directory file */
 function deleteTestFile(filename) {
