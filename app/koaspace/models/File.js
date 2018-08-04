@@ -1,3 +1,4 @@
+const path = require("path");
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../database/setup");
 const { User } = require("./User");
@@ -25,6 +26,20 @@ const File = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: false
     },
+    fullPath: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+      get() {
+        return path.resolve(
+          this.getDataValue("basedir"),
+          this.getDataValue("filename")
+        );
+      }
+    },
+    size: {
+      type: DataTypes.INTEGER,
+      allowNull: false
+    },
     counter: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -47,11 +62,6 @@ const File = sequelize.define(
   },
   {
     getterMethods: {
-      fullLocalFilePath() {
-        const basedir = this.getDataValue("basedir");
-        const filename = this.getDataValue("filename");
-        return `${basedir}/${filename}}`;
-      },
       fullS3FilePath() {
         const fullPath = this.fullLocalFilePath();
         return s3BucketFilePathbuilder(S3_BUCKET_URL, fullPath);

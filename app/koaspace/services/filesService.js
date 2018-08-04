@@ -1,5 +1,7 @@
 const path = require("path");
+const { sequelize } = require("../database/setup");
 const { promiseStat } = require("../utils/fsPromisify");
+const { Op } = require("sequelize");
 
 /** getFileStat Should return the filestat that contains properties
  * @param filePath: string
@@ -23,7 +25,7 @@ async function getFileStat(filePath) {
     expectedStat.filesize = size;
     expectedStat.filectime = ctime;
     expectedStat.filemtime = mtime;
-    return expectedStat;
+    return Promise.resolve(expectedStat);
   } catch (err) {
     throw new Error(`Error occurs in getFileStat : ${err.message}`);
   }
@@ -49,7 +51,34 @@ function getFileStatList(filePathList) {
   }
 }
 
+/** fileBulkDeleteByPathList take array of file path and
+ * delete those files record in bulk from database
+ * @param filePathList: string[]
+ * @param Promise<boolean>
+ */
+async function fileBulkDeleteByPathList(filePathList) {
+  const transaction = await sequelize.transaction();
+  try {
+    const result = await sequelize.getQueryInterface().bulkDelete("File", {
+      where: {
+        fullPath: {
+          [Op.in]: filePathList
+        }
+      }
+    });
+    if (result) {
+      await transaction.commit();
+      return Promise.resolve(true);
+    }
+    return Promise.reject(false);
+  } catch (err) {
+    await transaction.rollback();
+    throw new Error(`Error occurs in fileBulkDeleteByPathList: ${err.message}`);
+  }
+}
+
 module.exports = {
   getFileStat,
-  getFileStatList
+  getFileStatList,
+  fileBulkDeleteByPathList
 };

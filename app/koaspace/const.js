@@ -10,6 +10,9 @@ const S3_REGION = process.env.S3_REGION;
 const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
 const S3_API_VERSION = process.env.S3_API_VERSION;
 
+/** User Management */
+const ADMIN_USER_ID = process.env.ADMIN_USER_ID;
+
 /** DB */
 const DB_NAME = process.env.DB_NAME;
 const DB_USER = process.env.DB_USER;
@@ -30,5 +33,6 @@ module.exports = {
   DB_USER,
   DB_PASSWORD,
   DB_HOST,
-  DB_DIALECT
+  DB_DIALECT,
+  ADMIN_USER_ID
 };

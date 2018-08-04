@@ -17,49 +17,39 @@ const { appendTestContents } = "../helpers/index";
 
 const {
   getFileStat,
+  fileBulkDeleteByPathList,
   saveFileList,
   getFileStatList
 } = "../../koaspace/services/filesService.js";
+
+const { scanAllToDB } = require("../../koaspace/services/filesScanService");
 const { File } = require("../../koaspace/models/index");
-const { sequelize } = require("../../koaspace/database/setup");
-const { Op } = require("sequelize");
+// const { sequelize } = require("../../koaspace/database/setup");
+// const { Op } = require("sequelize");
 
 /** TODO:
  * Create a function helper for creating a temp file and save the file meta data to the db
- */
+ * Use test database
+ * */
 /** Scan file is process that save the file metadata to database before it is sync to s3 */
 describe(`[ File Scan Module ]`, () => {
   /** Initial Scan should scan all of files in the local source dir to database
-   * Step 1. Read files recursively from the current dir using read stream
-   * Step 2. Get the file stat for each individual file from Step 1.
-   * Step 3. Save all the file metadata to the database in a bulk
-   * Step 4. Reject if error is detected from a file during database importing
-   * Step 5. Delete all files from database
+   * Step 1. Scan all files to DB
+   * Step 2. Delete all files from database
    */
   test(`[ Initial Directory Scan - Add all file to database ]`, async () => {
-    expect.assertions(3);
-    /** Step 1 */
+    /** Scan all the db */
+    await expect(
+      scanAllToDB(ROOT_PATH, {
+        filterDirs: IGNORED_PATH
+      })
+    ).resolves.toBeTruthy();
+
+    /** Clearup test data in DB */
     const filePathList = await recurReaddir(ROOT_PATH, {
       filterDirs: IGNORED_PATH
     });
-    /** Step 2 */
-    const fileStatList = await getFileStatList(filePathList);
-    expect(fileStatList).toBeTruthy();
-
-    /** Step 3 & 4 */
-    await expect(File.bulkCreate(fileStatList)).resolves.toBeTruthy();
-
-    /** Step 5 */
-    const queryInterface = sequelize.getQueryInterface();
-    await expect(
-      queryInterface.bulkDelete("File", {
-        where: {
-          filePath: {
-            [Op.in]: filePathList
-          }
-        }
-      })
-    ).resolves.toBeTruthy();
+    await expect(fileBulkDeleteByPathList(filePathList)).resolves.toBeTruthy();
   });
   /** Scan new file to database
    * Step 1: Register the files watcher
