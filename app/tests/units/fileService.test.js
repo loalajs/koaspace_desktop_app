@@ -1,22 +1,14 @@
 const { getFileStat } = require("../../koaspace/services/filesService");
-// const { promiseStat } = require("../../koaspace/utils/fsPromisify");
-const { createTestFile } = require("../helpers/index");
+const { createTestFile, deleteTestFile } = require("../helpers/index");
 
 describe("[ File Service Unit Tests ]", () => {
-  /** getFileStat Should return the filestat that contains properties
-   * @prop filePath: string
-   * @prop filename: string
-   * @prop filesize: number
-   * @prop counter: number
-   * @prop filectime: Date
-   * @prop filemtime: Date
-   *
+  /** *
    * Steps
    * 1. Create temp file
    * 2. use getFileStat to get the expected result
    */
   test("[ getFileStat ]", async () => {
-    expect.assertions(7);
+    expect.assertions(8);
     const createdFilePath = await createTestFile("test.txt");
     const received = await getFileStat(createdFilePath);
     expect(received).toBeTruthy();
@@ -26,5 +18,6 @@ describe("[ File Service Unit Tests ]", () => {
     expect(received).toHaveProperty("counter", 0);
     expect(received).toHaveProperty("filectime");
     expect(received).toHaveProperty("filemtime");
+    await expect(deleteTestFile("test.txt")).resolves.toBeTruthy();
   });
 });
