@@ -1,15 +1,15 @@
 const path = require("path");
-const { s3BucketFilePathbuilder } = require("../koaspace/utils/helpers");
+const { s3BucketFilePathbuilder } = require("../../koaspace/utils/helpers");
 const {
   deleteObjects,
   putObject
-} = require("../koaspace/services/s3StorageService");
+} = require("../../koaspace/services/s3StorageService");
 const {
   unlinkPromise,
   readFilePromise,
   writeFilePromise
-} = require("../koaspace/utils/fsPromisify");
-const { S3_BUCKET_URL, S3_BUCKET_NAME } = require("../koaspace/const");
+} = require("../../koaspace/utils/fsPromisify");
+const { S3_BUCKET_URL, S3_BUCKET_NAME } = require("../../koaspace/const");
 
 describe("S3 Module", () => {
   /** deleteObjects test if object can be deleted from S3 */

@@ -1,17 +1,17 @@
 const path = require("path");
-const { ROOT_PATH, IGNORED_PATH } = require("../koaspace/const");
+const { ROOT_PATH, IGNORED_PATH } = require("../../koaspace/const");
 const {
   writeFilePromise,
   unlinkPromise,
   recurReaddir,
   ifFileExisted
-} = require("../koaspace/utils/fsPromisify");
+} = require("../../koaspace/utils/fsPromisify");
 const {
   watchFileUnlink,
   watchFileChange,
   watchFileCreation,
   scanFileToDB
-} = require("../koaspace/services/filesWatchService");
+} = require("../../koaspace/services/filesWatchService");
 
 const { appendTestContents } = "../helpers/index";
 
@@ -19,9 +19,9 @@ const {
   getFileStat,
   saveFileList,
   getFileStatList
-} = "../koaspace/services/filesService.js";
-const { File } = require("../koaspace/models/index");
-const { sequelize } = require("../koaspace/database/setup");
+} = "../../koaspace/services/filesService.js";
+const { File } = require("../../koaspace/models/index");
+const { sequelize } = require("../../koaspace/database/setup");
 const { Op } = require("sequelize");
 
 /** TODO:
@@ -37,7 +37,7 @@ describe(`[ File Scan Module ]`, () => {
    * Step 5. Delete all files from database
    */
   test(`[ Initial Directory Scan - Add all file to database ]`, async () => {
-    expect.assertions(1);
+    expect.assertions(3);
     /** Step 1 */
     const filePathList = await recurReaddir(ROOT_PATH, {
       filterDirs: IGNORED_PATH
@@ -124,7 +124,7 @@ describe(`[ File Scan Module ]`, () => {
     await expect(ifFileExisted(updatedFilePath)).resolves.toBeTruthy();
 
     /** 5. Find the file by updatedFilePath and update its counter */
-    const updatedFileCounter = await getFile(updatedFilePath);
+    const updatedFileCounter = await getOneFile(updatedFilePath);
     expect(updatedFileCounter).toBeGreaterThanOrEqual(1);
     expect(updatedFileCounter - fileCurrentCounter).toBe(1);
   });
@@ -135,12 +135,17 @@ describe(`[ File Scan Module ]`, () => {
    * @FIXME: Update waitForFileUnlink function
    */
   test(`[ Watch Files Changes - Delete one file from database ]`, async () => {
+    /** Start Listening */
     await watchFileUnlink();
+
+    /** Get the temp file path before unlink */
     const tempFilePath = path.resolve(process.cwd(), "app", "temp1.txt");
-    await expect(unlinkFile(tempFilePath)).resolves.toBeTruthy();
+
+    /** Perform actual unlink */
+    await expect(unlinkPromise(tempFilePath)).resolves.toBeTruthy();
     const deletedFilePath = await waitForFileUnlink();
     expect(deletedFilePath).toBeTruthy();
     expect(deletedFilePath).toBe(tempFilePath);
-    await expect(deleteFile(deletedFilePath)).resolves.toBeTruthy();
+    await expect(deleteOneFile(deletedFilePath)).resolves.toBeTruthy();
   });
 });

@@ -1,5 +1,5 @@
-const { s3BucketFilePathbuilder } = require("../koaspace/utils/helpers");
-const { S3_BUCKET_URL } = require("../koaspace/const");
+const { s3BucketFilePathbuilder } = require("../../koaspace/utils/helpers");
+const { S3_BUCKET_URL } = require("../../koaspace/const");
 
 describe(" S3 Module Unit Tests ", () => {
   /** TEST s3BucketFilePathbuilder Test the s3 target path generation

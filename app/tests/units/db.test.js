@@ -1,6 +1,6 @@
-const { sequelize } = require("../koaspace/database/setup");
-const { File, User } = require("../koaspace/models/index");
-const { createSeedUser } = require("../koaspace/database/seed");
+const { sequelize } = require("../../koaspace/database/setup");
+const { File, User } = require("../../koaspace/models/index");
+const { createSeedUser } = require("../../koaspace/database/seed");
 
 describe("DB Moudle", () => {
   /** Testing db connection */

@@ -29,6 +29,13 @@ async function getFileStat(filePath) {
   }
 }
 
+/** getFileStatList should get the array of the filestat
+ * @param filePathList: string[]
+ * @return fileStatList: string[]
+ */
+async function getFileStatList(filePathList) {}
+
 module.exports = {
-  getFileStat
+  getFileStat,
+  getFileStatList
 };
