@@ -13,7 +13,7 @@ const {
   watchFileChange,
   watchFileCreation,
   scanFileToDB
-} = require("../koaspace/services/filesService");
+} = require("../koaspace/services/filesWatchService");
 const { File } = require("../koaspace/models/index");
 const { sequelize } = require("../koaspace/database/setup");
 const { Op } = require("sequelize");
@@ -21,7 +21,6 @@ const { Op } = require("sequelize");
 /** TODO:
  * Create a function helper for creating a temp file and save the file meta data to the db
  */
-
 /** Scan file is process that save the file metadata to database before it is sync to s3 */
 describe(`[ File Scan Module ]`, () => {
   /** Initial Scan should scan all of files in the local source dir to database
@@ -157,6 +156,4 @@ describe(`[ File Scan Module ]`, () => {
     expect(deletedFilePath).toBe(tempFilePath);
     await expect(deleteFile(deletedFilePath)).resolves.toBeTruthy();
   });
-
-  /**  */
 });

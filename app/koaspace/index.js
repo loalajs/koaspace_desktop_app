@@ -6,7 +6,7 @@ const {
   watchFileChange,
   watchFileCreation,
   watchFileUnlink
-} = require("./services/filesService");
+} = require("./services/filesWatchService");
 const { IGNORED_PATH } = require("./const");
 // listFilesFromBucket();
 // syncToBucket();

@@ -12,28 +12,6 @@ const {
 const { S3_BUCKET_URL, S3_BUCKET_NAME } = require("../koaspace/const");
 
 describe("S3 Module", () => {
-  /** TEST s3BucketFilePathbuilder Test the s3 target path generation
-   * For example: /User/path/to/root/app/index.js should be transformed into
-   * s3://bucket-name/app/index.js
-   */
-  test("[ s3BucketFilePathbuilder ] tranform source file path to s3 path", () => {
-    /** Testing file path */
-    const soruceFilePath =
-      "/Users/jameslo/Dropbox/myproject/koaspace-desktop/app/koaspace/index.js";
-    const expectedFilePathResult = "s3://loala-test/app/koaspace/index.js";
-    expect(s3BucketFilePathbuilder(S3_BUCKET_URL, soruceFilePath)).toBe(
-      expectedFilePathResult
-    );
-
-    /** Testing Dir path */
-    const soruceDirPath =
-      "/Users/jameslo/Dropbox/myproject/koaspace-desktop/app/koaspace";
-    const expectedDirPathResult = "s3://loala-test/app/koaspace";
-    expect(s3BucketFilePathbuilder(S3_BUCKET_URL, soruceDirPath)).toBe(
-      expectedDirPathResult
-    );
-  });
-
   /** deleteObjects test if object can be deleted from S3 */
   test("[ deleteObjects ] delete object from s3 with file key", async () => {
     /** create file and delete it */
@@ -67,4 +45,10 @@ describe("S3 Module", () => {
       );
     }
   });
+
+  test("[ Added one file ]", () => {});
+
+  test("[ Update one file ]", () => {});
+
+  test("[ Initial Upload ]", () => {});
 });
