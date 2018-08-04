@@ -34,9 +34,9 @@ describe("[ File Service Unit Tests ]", () => {
     const tempFilePath1 = await createTestFile("test1.txt");
     const tempFilePath2 = await createTestFile("test2.txt");
     const fileStatList = await getFileStatList([tempFilePath1, tempFilePath2]);
-    expect(fileStatList)
-      .toBeTruthy()
-      .toHaveLength(2);
+    expect(fileStatList).toBeTruthy();
+
+    expect(fileStatList).toHaveLength(2);
 
     fileStatList.forEach(filestat => {
       expect(filestat).toHaveProperty("filePath");
