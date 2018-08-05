@@ -18,8 +18,7 @@
     "webpack:watch": "node_modules/.bin/webpack --config client/webpack.config.js -w",
     "test": "node_modules/.bin/jest --detectOpenHandles",
     "dev-nodemon": "nodemon app/koaspace/index.js",
-    "dev-node": "node app/koaspace/index.js",
-    "create-seed": "node app/koaspace/database/createSeed.js"
+    "dev-node": "node app/koaspace/index.js"
   },
   "keywords": [],
   "author": "jameslo",

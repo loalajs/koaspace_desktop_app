@@ -16,7 +16,7 @@ async function createTestFile(filename) {
   if (await writeFilePromise(fullPath, "Hello world!")) {
     return fullPath;
   }
-  throw new Error(`Cannot create Test File`);
+  throw new Error(`Cannot create Test Files`);
 }
 /** Delete temp in the /app directory file */
 function deleteTestFile(filename) {

@@ -4,7 +4,7 @@ const {
 } = require("../../koaspace/services/filesService");
 const { createTestFile, deleteTestFile } = require("../helpers/index");
 
-describe("[ File Service Unit Tests ]", () => {
+describe("[ Files Service Unit Tests ]", () => {
   /** *
    * Steps
    * 1. Create temp file

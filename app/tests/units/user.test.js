@@ -1,8 +1,8 @@
-const { User } = require("../../koaspace/models/index");
+const { Users } = require("../../koaspace/models/index");
 
-describe("[ User Model ]", () => {
+describe("[ Users Model ]", () => {
   /** Testing adding a dummy user */
-  test("[ Add Dummy User ]", async () => {
+  test("[ Add Dummy Users ]", async () => {
     expect.assertions(1);
     const userParams = {
       username: "james321",
@@ -12,11 +12,11 @@ describe("[ User Model ]", () => {
       displayName: "James",
       securityGroup: "Admin"
     };
-    const newUser = await User.create(userParams);
+    const newUser = await Users.create(userParams);
     expect(newUser.username).toBe("james321");
   });
 
-  test("[ Add Duplicate Dummy User ]", async () => {
+  test("[ Add Duplicate Dummy Users ]", async () => {
     expect.assertions(1);
     const duplicatedUserParam = {
       username: "james321",
@@ -26,10 +26,10 @@ describe("[ User Model ]", () => {
       displayName: "James",
       securityGroup: "Admin"
     };
-    await expect(User.create(duplicatedUserParam)).rejects.toThrow();
+    await expect(Users.create(duplicatedUserParam)).rejects.toThrow();
   });
 
-  test("[ Add Invalid Dummy User ]", async () => {
+  test("[ Add Invalid Dummy Users ]", async () => {
     expect.assertions(1);
     const invalidUser = {
       username: "james123",
@@ -39,29 +39,29 @@ describe("[ User Model ]", () => {
       displayName: "James",
       securityGroup: "Admin"
     };
-    await expect(User.create(invalidUser)).rejects.toThrow();
+    await expect(Users.create(invalidUser)).rejects.toThrow();
   });
 
-  test("[ Update Dummy User ]", async () => {
+  test("[ Update Dummy Users ]", async () => {
     expect.assertions(1);
     const set = {
       displayName: "James Lo",
       profileActive: true
     };
-    const [row] = await User.update(set, {
+    const [row] = await Users.update(set, {
       where: { username: "james321" }
     });
     expect(row).toBeGreaterThan(0);
   });
-  test("[ Get Dummy User ]", async () => {
+  test("[ Get Dummy Users ]", async () => {
     expect.assertions(1);
-    const user = await User.findOne({ where: { username: "james321" } });
+    const user = await Users.findOne({ where: { username: "james321" } });
     expect(user.username).toBe("james321");
   });
-  test("[ Remove Dummy User ]", async () => {
+  test("[ Remove Dummy Users ]", async () => {
     expect.assertions(1);
     await expect(
-      User.destroy({
+      Users.destroy({
         where: {
           username: "james321"
         }

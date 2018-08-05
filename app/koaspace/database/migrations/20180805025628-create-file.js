@@ -1,9 +1,9 @@
 const path = require("path");
-const { User } = require("../../models/index");
+const { Users } = require("../../models/index");
 
 module.exports = {
   up: (queryInterface, Sequelize) =>
-    queryInterface.createTable("File", {
+    queryInterface.createTable("Files", {
       id: {
         type: Sequelize.INTEGER(12),
         allowNull: false,
@@ -45,7 +45,7 @@ module.exports = {
       User_id: {
         type: Sequelize.INTEGER,
         reference: {
-          model: User,
+          model: Users,
           key: "id"
         }
       },
@@ -58,5 +58,5 @@ module.exports = {
         type: Sequelize.DATE
       }
     }),
-  down: (queryInterface, Sequelize) => queryInterface.dropTable("File")
+  down: (queryInterface, Sequelize) => queryInterface.dropTable("Files")
 };

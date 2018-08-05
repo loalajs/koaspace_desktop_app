@@ -23,7 +23,7 @@ const {
 } = "../../koaspace/services/filesService.js";
 
 const { scanAllToDB } = require("../../koaspace/services/filesScanService");
-const { File } = require("../../koaspace/models/index");
+const { Files } = require("../../koaspace/models/index");
 // const { sequelize } = require("../../koaspace/database/setup");
 // const { Op } = require("sequelize");
 
@@ -32,7 +32,7 @@ const { File } = require("../../koaspace/models/index");
  * Use test database
  * */
 /** Scan file is process that save the file metadata to database before it is sync to s3 */
-describe(`[ File Scan Module ]`, () => {
+describe(`[ Files Scan Module ]`, () => {
   /** Initial Scan should scan all of files in the local source dir to database
    * Step 1. Scan all files to DB
    * Step 2. Delete all files from database
@@ -97,9 +97,9 @@ describe(`[ File Scan Module ]`, () => {
     const fileCurrentCounter = tempFileStat.counter;
     expect(fileCurrentCounter).toBeGreaterThanOrEqual(0);
 
-    await expect(File.create(tempFileStat)).resolves.toBeTruthy();
+    await expect(Files.create(tempFileStat)).resolves.toBeTruthy();
 
-    /** 2. FIXME: File change implementation */
+    /** 2. FIXME: Files change implementation */
     await watchFileChange();
 
     /** 3. Append some contents to temp file */

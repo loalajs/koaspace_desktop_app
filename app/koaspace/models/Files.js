@@ -1,7 +1,7 @@
 const path = require("path");
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../database/setup");
-const { User } = require("./User");
+const { Users } = require("./Users");
 const { s3BucketFilePathbuilder } = require("../utils/helpers");
 const { S3_BUCKET_URL } = require("../const");
 
@@ -10,8 +10,8 @@ const { S3_BUCKET_URL } = require("../const");
  * filectime: Date
  * filemtime: Date
  */
-const File = sequelize.define(
-  "File",
+const Files = sequelize.define(
+  "Files",
   {
     id: {
       type: DataTypes.INTEGER(12),
@@ -54,7 +54,7 @@ const File = sequelize.define(
     User_id: {
       type: DataTypes.INTEGER,
       reference: {
-        model: User,
+        model: Users,
         key: "id"
       }
     },
@@ -78,5 +78,5 @@ const File = sequelize.define(
 );
 
 module.exports = {
-  File
+  Files
 };

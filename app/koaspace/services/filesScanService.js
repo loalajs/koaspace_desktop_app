@@ -4,7 +4,7 @@ const { recurReaddir } = require("../utils/fsPromisify");
 const { getFileStatList } = require("./filesService");
 const { sequelize } = require("../database/setup");
 const { Op } = require("sequelize");
-const { File } = require("../models/index");
+const { Files } = require("../models/index");
 
 /** scanAllToDB should scan all of files in the local source dir to database
  * Step 1. Read files recursively from the current dir using read stream
@@ -32,12 +32,12 @@ async function scanAllToDB(rootPath, options = {}) {
       User_id: USER_ADMIN_ID
     }));
     /** Step 3 & 4 */
-    await File.bulkCreate(filePropsList, { transaction });
+    await Files.bulkCreate(filePropsList, { transaction });
 
     /** Verify if data is inserted & Must query again:
      * http://docs.sequelizejs.com/class/lib/model.js~Model.html#static-method-bulkCreate
      */
-    const newFiles = await File.findAll({
+    const newFiles = await Files.findAll({
       where: {
         fullPath: {
           [Op.in]: fileStatList.map(fileStat => fileStat.filePath)

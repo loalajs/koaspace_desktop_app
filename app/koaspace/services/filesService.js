@@ -59,7 +59,7 @@ function getFileStatList(filePathList) {
 async function fileBulkDeleteByPathList(filePathList) {
   const transaction = await sequelize.transaction();
   try {
-    const result = await sequelize.getQueryInterface().bulkDelete("File", {
+    const result = await sequelize.getQueryInterface().bulkDelete("Files", {
       where: {
         fullPath: {
           [Op.in]: filePathList

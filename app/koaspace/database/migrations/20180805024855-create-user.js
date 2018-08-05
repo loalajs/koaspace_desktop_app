@@ -1,6 +1,6 @@
 module.exports = {
   up: (queryInterface, Sequelize) =>
-    queryInterface.createTable("User", {
+    queryInterface.createTable("Users", {
       id: {
         type: Sequelize.INTEGER(12),
         primaryKey: true,
@@ -34,19 +34,19 @@ module.exports = {
         type: Sequelize.STRING(80),
         allowNull: true
       },
-      /** Control User Login Permission */
+      /** Control Users Login Permission */
       profileActive: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
         defaultValue: false
       },
-      /** Control User Authorization that define functionality available and data visibility  */
+      /** Control Users Authorization that define functionality available and data visibility  */
       securityGroup: {
         type: Sequelize.STRING(20),
         allowNull: false,
-        defaultValue: "User",
+        defaultValue: "Users",
         validate: {
-          isIn: [["User", "Admin"]]
+          isIn: [["Users", "Admin"]]
         }
       },
       createdAt: {
@@ -58,5 +58,5 @@ module.exports = {
         type: Sequelize.DATE
       }
     }),
-  down: (queryInterface, Sequelize) => queryInterface.dropTable("User")
+  down: (queryInterface, Sequelize) => queryInterface.dropTable("Users")
 };

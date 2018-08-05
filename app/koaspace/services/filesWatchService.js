@@ -17,7 +17,7 @@ const IGNORED_PATH_REGEXP = transformPathsFromArrayToRegexp(IGNORED_PATH);
  * @param option: <chokidar Config Watcher Object f>
  */
 function registerFileWatcher(wachtPath, option) {
-  /** File Registeration
+  /** Files Registeration
    * TODO 1: Change the file path that is targeted for a watch
    */
   const watcher = chokidar.watch(wachtPath, option);
@@ -46,7 +46,7 @@ async function initialFilesScan(targetPath, option = {}) {
   }
 }
 
-/** Watch for File added */
+/** Watch for Files added */
 function watchFileCreation() {
   try {
     const watch = registerFileWatcher(ROOT_PATH, {
@@ -55,7 +55,7 @@ function watchFileCreation() {
     });
     watch.on("ready", () => {
       watch.on("add", filePath => {
-        console.log(`File added at ${filePath}`);
+        console.log(`Files added at ${filePath}`);
         /** M1: synct the file to the s3 by the filePath */
         const sourceFileDir = path.dirname(filePath);
         const targetFileDir = s3BucketFilePathbuilder(
@@ -83,7 +83,7 @@ function watchFileChange() {
 
     watch.on("ready", () => {
       watch.on("change", filePath => {
-        console.log(`File changed at ${filePath}`);
+        console.log(`Files changed at ${filePath}`);
         /** M1: Sync the file to S3 */
         const sourceFileDir = path.dirname(filePath);
         const targetFileDir = s3BucketFilePathbuilder(
@@ -116,7 +116,7 @@ function watchFileUnlink() {
         const output = await deleteObjects(S3_BUCKET_NAME, [
           { Key: targetFilePath }
         ]);
-        console.log(`File is removed at: ${output}`);
+        console.log(`Files is removed at: ${output}`);
         /** M2: save to the database */
       } catch (err) {
         throw new Error(`Error occurs at watchFileUnlink: ${err.message}`);

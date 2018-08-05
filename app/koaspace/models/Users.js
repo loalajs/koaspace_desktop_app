@@ -1,7 +1,7 @@
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../database/setup");
 
-const User = sequelize.define("User", {
+const Users = sequelize.define("Users", {
   id: {
     type: DataTypes.INTEGER(12),
     primaryKey: true,
@@ -35,19 +35,19 @@ const User = sequelize.define("User", {
     type: DataTypes.STRING(80),
     allowNull: true
   },
-  /** Control User Login Permission */
+  /** Control Users Login Permission */
   profileActive: {
     type: DataTypes.BOOLEAN,
     allowNull: false,
     defaultValue: false
   },
-  /** Control User Authorization that define functionality available and data visibility  */
+  /** Control Users Authorization that define functionality available and data visibility  */
   securityGroup: {
     type: DataTypes.STRING(20),
     allowNull: false,
-    defaultValue: "User",
+    defaultValue: "Users",
     validate: {
-      isIn: [["User", "Admin"]]
+      isIn: [["Users", "Admin"]]
     }
   },
   createdAt: {
@@ -61,5 +61,5 @@ const User = sequelize.define("User", {
 });
 
 module.exports = {
-  User
+  Users
 };
