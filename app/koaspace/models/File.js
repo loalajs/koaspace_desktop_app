@@ -15,6 +15,7 @@ const File = sequelize.define(
   {
     id: {
       type: DataTypes.INTEGER(12),
+      allowNull: false,
       primaryKey: true,
       autoIncrement: true
     },
@@ -57,8 +58,14 @@ const File = sequelize.define(
         key: "id"
       }
     },
-    createdAt: DataTypes.DATE,
-    updatedAt: DataTypes.DATE
+    createdAt: {
+      allowNull: false,
+      type: DataTypes.DATE
+    },
+    updatedAt: {
+      allowNull: false,
+      type: DataTypes.DATE
+    }
   },
   {
     getterMethods: {

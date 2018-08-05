@@ -5,7 +5,8 @@ const User = sequelize.define("User", {
   id: {
     type: DataTypes.INTEGER(12),
     primaryKey: true,
-    autoIncrement: true
+    autoIncrement: true,
+    allowNull: false
   },
   username: {
     type: DataTypes.STRING(25),
@@ -49,8 +50,14 @@ const User = sequelize.define("User", {
       isIn: [["User", "Admin"]]
     }
   },
-  createdAt: DataTypes.DATE,
-  updatedAt: DataTypes.DATE
+  createdAt: {
+    allowNull: false,
+    type: DataTypes.DATE
+  },
+  updatedAt: {
+    allowNull: false,
+    type: DataTypes.DATE
+  }
 });
 
 module.exports = {
