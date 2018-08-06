@@ -42,8 +42,22 @@ function s3BucketFilePathbuilder(s3BucketRoot, sourceFilePath) {
   return targetFilePath;
 }
 
+/** Get current time string in format: YYYY-MM-DD HH:MM:SS
+ * @return String
+ */
+function getCurrentTimeStampISO() {
+  /** offset in milliseconds */
+  const tzoffset = new Date().getTimezoneOffset() * 60000;
+  const localISOTime = new Date(Date.now() - tzoffset)
+    .toISOString()
+    .slice(0, 19)
+    .replace("T", " ");
+  return localISOTime;
+}
+
 module.exports = {
   execPromise,
   transformPathsFromArrayToRegexp,
-  s3BucketFilePathbuilder
+  s3BucketFilePathbuilder,
+  getCurrentTimeStampISO
 };

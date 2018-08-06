@@ -1,31 +1,20 @@
-const { Users } = require("../../models/index");
-
+const { getCurrentTimeStampISO } = require("../../utils/helpers");
 const userParams = {
   username: "james.lo",
   password: "jameslo",
   profileId: "KS00000002",
   email: "james@koaspace.com",
   displayName: "James",
-  securityGroup: "Admin"
+  securityGroup: "Admin",
+  createdAt: getCurrentTimeStampISO(),
+  updatedAt: getCurrentTimeStampISO()
 };
-Users.findOrCreate({
-  where: {
-    username: "james.lo"
-  },
-  defaults: userParams
-});
 
 module.exports = {
   up: (queryInterface, Sequelize) =>
-    Users.findOrCreate({
-      where: {
-        username: "james.lo"
-      },
-      defaults: userParams
-    }),
-
+    queryInterface.bulkInsert("Users", [userParams]),
   down: (queryInterface, Sequelize) =>
-    Users.destroy({
+    queryInterface.bulkDelete("Users", {
       where: {
         username: "james.lo"
       }
