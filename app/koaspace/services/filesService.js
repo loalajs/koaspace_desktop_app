@@ -59,18 +59,13 @@ function getFileStatList(filePathList) {
 async function fileBulkDeleteByPathList(filePathList) {
   const transaction = await sequelize.transaction();
   try {
-    const result = await sequelize.getQueryInterface().bulkDelete("Files", {
-      where: {
-        fullPath: {
-          [Op.in]: filePathList
-        }
+    await sequelize.getQueryInterface().bulkDelete("Files", {
+      fullPath: {
+        [Op.in]: filePathList
       }
     });
-    if (result) {
-      await transaction.commit();
-      return Promise.resolve(true);
-    }
-    return Promise.reject(false);
+    await transaction.commit();
+    return Promise.resolve(true);
   } catch (err) {
     await transaction.rollback();
     throw new Error(`Error occurs in fileBulkDeleteByPathList: ${err.message}`);

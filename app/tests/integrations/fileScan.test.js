@@ -13,14 +13,12 @@ const {
   scanFileToDB
 } = require("../../koaspace/services/filesWatchService");
 
-const { appendTestContents } = "../helpers/index";
+const { appendTestContents } = require("../helpers/index");
 
 const {
   getFileStat,
-  fileBulkDeleteByPathList,
-  saveFileList,
-  getFileStatList
-} = "../../koaspace/services/filesService.js";
+  fileBulkDeleteByPathList
+} = require("../../koaspace/services/filesService");
 
 const { scanAllToDB } = require("../../koaspace/services/filesScanService");
 const { Files } = require("../../koaspace/models/index");

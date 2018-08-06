@@ -27,18 +27,12 @@ const Files = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: false
     },
-    fullPath: {
-      type: DataTypes.TEXT,
-      allowNull: false,
-      get() {
-        return path.resolve(
-          this.getDataValue("basedir"),
-          this.getDataValue("filename")
-        );
-      }
-    },
     size: {
       type: DataTypes.INTEGER,
+      allowNull: false
+    },
+    fullPath: {
+      type: DataTypes.TEXT,
       allowNull: false
     },
     counter: {
@@ -69,10 +63,15 @@ const Files = sequelize.define(
   },
   {
     getterMethods: {
-      fullS3FilePath() {
+      fullS3FilePath: () => {
         const fullPath = this.fullLocalFilePath();
         return s3BucketFilePathbuilder(S3_BUCKET_URL, fullPath);
-      }
+      },
+      fullPath: () =>
+        path.resolve(
+          this.getDataValue("basedir"),
+          this.getDataValue("filename")
+        )
     }
   }
 );

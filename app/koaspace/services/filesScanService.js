@@ -3,7 +3,6 @@ const { USER_ADMIN_ID } = require("../const");
 const { recurReaddir } = require("../utils/fsPromisify");
 const { getFileStatList } = require("./filesService");
 const { sequelize } = require("../database/setup");
-const { Op } = require("sequelize");
 const { Files } = require("../models/index");
 
 /** scanAllToDB should scan all of files in the local source dir to database
@@ -29,30 +28,15 @@ async function scanAllToDB(rootPath, options = {}) {
       basedir: path.dirname(filestat.filePath),
       counter: filestat.counter,
       remoteUpdated: 0,
-      User_id: USER_ADMIN_ID
+      User_id: USER_ADMIN_ID,
+      size: filestat.filesize,
+      fullPath: filestat.filePath
     }));
     /** Step 3 & 4 */
     await Files.bulkCreate(filePropsList, { transaction });
 
-    /** Verify if data is inserted & Must query again:
-     * http://docs.sequelizejs.com/class/lib/model.js~Model.html#static-method-bulkCreate
-     */
-    const newFiles = await Files.findAll({
-      where: {
-        fullPath: {
-          [Op.in]: fileStatList.map(fileStat => fileStat.filePath)
-        }
-      },
-      transaction
-    });
-
-    if (newFiles.length === fileStatList.length) {
-      await transaction.commit();
-      return Promise.resolve(true);
-    }
-    throw new Error(
-      `Length is not consistent between scanned files and inserted files in DB`
-    );
+    await transaction.commit();
+    return Promise.resolve(true);
   } catch (err) {
     await transaction.rollback();
     throw new Error(`Error occurs in scanAllToDB : ${err.message}`);
