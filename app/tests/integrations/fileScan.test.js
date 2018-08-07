@@ -57,7 +57,6 @@ describe(`[ Files Scan Module ]`, () => {
    * FIXME: watchFileCreation MUST BE MODIFIED TO ABLE TO PASS A PROMISE FILE PATH
    * */
   test(`[ Watch Files Changes - Add one to database ]`, async () => {
-    expect.assertions(7);
     const tempFilePath = path.resolve(process.cwd(), "app", "temp.txt");
     /** Step 1: Resgister the file watcher */
     await watchFileCreation();
@@ -66,7 +65,10 @@ describe(`[ Files Scan Module ]`, () => {
     await writeFilePromise(tempFilePath, "hello world");
     const fileStat = await getFileStat(tempFilePath);
 
-    /** Step 3: Should return the newly added file */
+    /** Step 3: Should return the newly added file
+     * @TODO: Before running scanFileToDB, the file should be searched
+     * and if not found, then exec scanFileToDB which save the file metadata to DB
+     */
     await expect(scanFileToDB(fileStat)).resolves.toBeDefined();
 
     /** Step 4: Delete the temp file */
@@ -90,7 +92,7 @@ describe(`[ Files Scan Module ]`, () => {
     /** 1.2 Save temp file to db
      * TODO: Modify the DB Schema
      */
-    const tempFileStat = await getFileStat(tempFilePath, { counterInit: true });
+    const tempFileStat = await getFileStat(tempFilePath);
 
     const fileCurrentCounter = tempFileStat.counter;
     expect(fileCurrentCounter).toBeGreaterThanOrEqual(0);

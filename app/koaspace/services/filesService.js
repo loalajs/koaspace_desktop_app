@@ -2,6 +2,7 @@ const path = require("path");
 const { sequelize } = require("../database/setup");
 const { promiseStat } = require("../utils/fsPromisify");
 const { Op } = require("sequelize");
+const { Files } = require("../models/index");
 
 /** getFileStat Should return the filestat that contains properties
  * @param filePath: string
@@ -13,12 +14,19 @@ const { Op } = require("sequelize");
  * @prop filectime: Date
  * @prop filemtime: Date
  *
- * */
+ * @TODO: Sperate logic of finding the file */
 async function getFileStat(filePath) {
   try {
+    let counter = await Files.findOne({ where: { fullPath: filePath } })
+      .counter;
+    if (!counter) {
+      counter = 0;
+    }
+
     const expectedStat = {
-      counter: 0,
+      counter,
       filePath,
+      basedir: path.dirname(filePath),
       filename: path.basename(filePath)
     };
     const { size, ctime, mtime } = await promiseStat(filePath);
@@ -72,8 +80,17 @@ async function fileBulkDeleteByPathList(filePathList) {
   }
 }
 
+/** getOneFile get the file from db table Files
+ * @param filePath: string
+ * @return found Files instance from DB or Promise.resovle(false)
+ */
+async function getOneFileByPath(filePath) {}
+
+/**  */
+
 module.exports = {
   getFileStat,
   getFileStatList,
-  fileBulkDeleteByPathList
+  fileBulkDeleteByPathList,
+  getOneFileByPath
 };
