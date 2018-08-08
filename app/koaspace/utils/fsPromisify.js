@@ -46,7 +46,10 @@ function promiseStat(filePath) {
   });
 }
 
-/** ifFileExisted use fs.stat to test file's existence */
+/** ifFileExisted use fs.stat to test file's existence
+ * @param filePath: String
+ * @return Promise<Boolean> true for file existed otherwise false
+ */
 function ifFileExisted(filePath) {
   return new Promise((resolve, reject) => {
     fs.stat(filePath, err => {

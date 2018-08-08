@@ -1,6 +1,6 @@
 const path = require("path");
 const { sequelize } = require("../database/setup");
-const { promiseStat } = require("../utils/fsPromisify");
+const { promiseStat, ifFileExisted } = require("../utils/fsPromisify");
 const { Op } = require("sequelize");
 const { Files } = require("../models/index");
 
@@ -82,15 +82,56 @@ async function fileBulkDeleteByPathList(filePathList) {
 
 /** getOneFile get the file from db table Files
  * @param filePath: string
- * @return found Files instance from DB or Promise.resovle(false)
+ * @return found Files instance from DB or Promise.resovle(false) if not found
  */
-async function getOneFileByPath(filePath) {}
+async function getOneFileByPath(filePath) {
+  try {
+    const found = await Files.findOne({
+      where: {
+        fullPath: filePath
+      }
+    });
+    if (!found) {
+      return Promise(false);
+    }
+    return Promise.resolve(found);
+  } catch (err) {
+    throw new Error(
+      `Error occurs in getOneFileByPath function: ${err.message}`
+    );
+  }
+}
 
-/**  */
+/** deleteOneFileByPath
+ * @param filePath: String
+ * @return Promise<Boolean>
+ * If file is successfully deleted from db, return true
+ * If file delete yield result: 0, it means nothing is deleted from DB
+ * then yield error
+ */
+async function deleteOneFileByPath(filePath) {
+  try {
+    if (!ifFileExisted(filePath)) {
+      throw new Error(`File not existed at ${filePath}`);
+    }
+    const result = await Files.destroy({
+      where: {
+        fullPath: filePath
+      }
+    });
+    if (!result) {
+      throw new Error(`Nothing is deleted from DB for filePath: ${filePath}`);
+    }
+    return Promise.resolve(true);
+  } catch (err) {
+    throw new Error(`Error occurs in deleteOneFileByPath: ${err.message}`);
+  }
+}
 
 module.exports = {
   getFileStat,
   getFileStatList,
   fileBulkDeleteByPathList,
-  getOneFileByPath
+  getOneFileByPath,
+  deleteOneFileByPath
 };

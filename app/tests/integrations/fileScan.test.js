@@ -9,8 +9,7 @@ const {
 const {
   watchFileUnlink,
   watchFileChange,
-  watchFileCreation,
-  scanFileToDB
+  watchFileCreation
 } = require("../../koaspace/services/filesWatchService");
 
 const { appendTestContents } = require("../helpers/index");
@@ -20,7 +19,10 @@ const {
   fileBulkDeleteByPathList
 } = require("../../koaspace/services/filesService");
 
-const { scanAllToDB } = require("../../koaspace/services/filesScanService");
+const {
+  scanAllToDB,
+  scanFileToDB
+} = require("../../koaspace/services/filesScanService");
 const { Files } = require("../../koaspace/models/index");
 // const { sequelize } = require("../../koaspace/database/setup");
 // const { Op } = require("sequelize");
@@ -63,13 +65,13 @@ describe(`[ Files Scan Module ]`, () => {
 
     /** Create a file */
     await writeFilePromise(tempFilePath, "hello world");
-    const fileStat = await getFileStat(tempFilePath);
 
     /** Step 3: Should return the newly added file
      * @TODO: Before running scanFileToDB, the file should be searched
+     * @TODO: Should refactor the watchFileCreation so program can catch newly created path
      * and if not found, then exec scanFileToDB which save the file metadata to DB
      */
-    await expect(scanFileToDB(fileStat)).resolves.toBeDefined();
+    await expect(scanFileToDB(tempFilePath)).resolves.toBeDefined();
 
     /** Step 4: Delete the temp file */
     await expect(unlinkPromise(tempFilePath).resolves.toBeTruthy());

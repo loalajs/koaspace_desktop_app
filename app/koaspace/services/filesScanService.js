@@ -1,11 +1,6 @@
-const path = require("path");
-const { USER_ADMIN_ID } = require("../const");
+const { ADMIN_USER_ID } = require("../const");
 const { recurReaddir } = require("../utils/fsPromisify");
-const {
-  getFileStatList,
-  getOneFileByPath,
-  getFileStat
-} = require("./filesService");
+const { getFileStatList, getFileStat } = require("./filesService");
 const { sequelize } = require("../database/setup");
 const { Files } = require("../models/index");
 
@@ -32,7 +27,7 @@ async function scanAllToDB(rootPath, options = {}) {
       basedir: filestat.basedir,
       counter: filestat.counter,
       remoteUpdated: 0,
-      User_id: USER_ADMIN_ID,
+      User_id: ADMIN_USER_ID,
       size: filestat.filesize,
       fullPath: filestat.filePath
     }));
@@ -65,7 +60,7 @@ async function scanFileToDB(filePath) {
       size: fileprop.filesize,
       fullPath: fileprop.filePath,
       counter: fileprop.counter,
-      User_id: USER_ADMIN_ID
+      User_id: ADMIN_USER_ID
     });
     if (createdFile) {
       return Promise.resolve(createdFile);
