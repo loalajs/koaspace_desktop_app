@@ -1,6 +1,6 @@
 const path = require("path");
 const { sequelize } = require("../database/setup");
-const { promiseStat, ifFileExisted } = require("../utils/fsPromisify");
+const { promiseStat } = require("../utils/fsPromisify");
 const { Op } = require("sequelize");
 const { Files } = require("../models/index");
 
@@ -111,9 +111,6 @@ async function getOneFileByPath(filePath) {
  */
 async function deleteOneFileByPath(filePath) {
   try {
-    if (!ifFileExisted(filePath)) {
-      throw new Error(`File not existed at ${filePath}`);
-    }
     const result = await Files.destroy({
       where: {
         fullPath: filePath
@@ -128,10 +125,21 @@ async function deleteOneFileByPath(filePath) {
   }
 }
 
+/** updateFileFromDB update existing file's metadata, mainly the counter to DB
+ * @param filePath: String
+ * @return Promise<File Instance>
+ * Steps
+ * 1. Get the file stat based on the filePath
+ * 2. Update the file by finding based on the file path
+ * 3. Return the updated File instance data from DB
+ *  */
+async function updateFileFromDB(filePath) {}
+
 module.exports = {
   getFileStat,
   getFileStatList,
   fileBulkDeleteByPathList,
   getOneFileByPath,
-  deleteOneFileByPath
+  deleteOneFileByPath,
+  updateFileFromDB
 };
