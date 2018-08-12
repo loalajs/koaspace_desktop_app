@@ -19,7 +19,7 @@ describe("S3 Module", () => {
      *  body: hello world
      *  bucket-name: loala-test
      */
-    const tempSourceFilePath = path.resolve(process.cwd(), "app", "temp.txt");
+    const tempSourceFilePath = path.resolve(process.cwd(), "app", "temp2.txt");
     const tempTargetFilePath = s3BucketFilePathbuilder(
       S3_BUCKET_URL,
       tempSourceFilePath

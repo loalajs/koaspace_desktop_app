@@ -1,14 +1,8 @@
 const chokidar = require("chokidar");
-const path = require("path");
-const { ROOT_PATH, IGNORED_PATH, S3_BUCKET_NAME } = require("../const");
-const { syncToBucket } = require("./syncService");
-const {
-  transformPathsFromArrayToRegexp,
-  s3BucketFilePathbuilder
-} = require("../utils/helpers");
-const { deleteObjects } = require("./s3StorageService");
-const { S3_BUCKET_URL } = require("../const");
+const { ROOT_PATH, IGNORED_PATH } = require("../const");
+const { transformPathsFromArrayToRegexp } = require("../utils/helpers");
 const { recurReaddir } = require("../utils/fsPromisify");
+const { Observable } = require("rxjs");
 
 const IGNORED_PATH_REGEXP = transformPathsFromArrayToRegexp(IGNORED_PATH);
 
@@ -46,97 +40,64 @@ async function initialFilesScan(targetPath, option = {}) {
   }
 }
 
+function observableFileWatchReady() {
+  try {
+    const watch = registerFileWatcher(ROOT_PATH, {
+      ignored: IGNORED_PATH_REGEXP,
+      ignoreInitial: true
+    });
+    return new Observable(observer => {
+      watch.on("ready", () => {
+        observer.next(true);
+      });
+      return () => {
+        watch.close();
+      };
+    });
+  } catch (err) {
+    throw new Error(
+      `Error occurs in observableFileWatchReady : ${err.message}`
+    );
+  }
+}
+
 /** Watch for Files added */
-function watchFileCreation() {
+function observeFileChange() {
   try {
     const watch = registerFileWatcher(ROOT_PATH, {
       ignored: IGNORED_PATH_REGEXP,
       ignoreInitial: true
     });
-    watch.on("ready", () => {
-      watch.on("add", filePath => {
-        console.log(`Files added at ${filePath}`);
-        /** M1: synct the file to the s3 by the filePath */
-        const sourceFileDir = path.dirname(filePath);
-        const targetFileDir = s3BucketFilePathbuilder(
-          S3_BUCKET_URL,
-          sourceFileDir
-        );
-        /** TODO: Refactor syncToBucket to another module */
-        syncToBucket(sourceFileDir, targetFileDir);
-        /**  M2: save it the database
-         */
-      });
+    return new Observable(observer => {
+      watch
+        .on("ready", () => {
+          observer.next({ event: "ready" });
+        })
+        .on("add", filePath => {
+          observer.next({ event: "add", filePath });
+        })
+        .on("change", filePath => {
+          observer.next({ event: "change", filePath });
+        })
+        .on("unlink", filePath => {
+          observer.next({ event: "unlink", filePath });
+        })
+        .on("error", error => {
+          observer.error(error);
+        });
+      return () => {
+        watch.close();
+        // console.log(`Unsubscribe`);
+      };
     });
   } catch (err) {
-    throw new Error(`Error occurs in watchFileCreation : ${err.message}`);
+    throw new Error(`Error occurs in observeFileChange : ${err.message}`);
   }
-}
-
-/** Watch for Files changed & updated */
-function watchFileChange() {
-  try {
-    const watch = registerFileWatcher(ROOT_PATH, {
-      ignored: IGNORED_PATH_REGEXP,
-      ignoreInitial: true
-    });
-
-    watch.on("ready", () => {
-      watch.on("change", filePath => {
-        console.log(`Files changed at ${filePath}`);
-        /** M1: Sync the file to S3 */
-        const sourceFileDir = path.dirname(filePath);
-        const targetFileDir = s3BucketFilePathbuilder(
-          S3_BUCKET_URL,
-          sourceFileDir
-        );
-        /** TODO: Refactor syncToBucket to another module */
-        syncToBucket(sourceFileDir, targetFileDir);
-        /** M2: save to the database */
-      });
-    });
-  } catch (err) {
-    throw new Error(`Error occurs at watchFileChange : ${err.message}`);
-  }
-}
-
-/** Watch for Remove files */
-function watchFileUnlink() {
-  const watch = registerFileWatcher(ROOT_PATH, {
-    ignored: IGNORED_PATH_REGEXP,
-    ignoreInitial: true
-  });
-
-  watch.on("ready", () => {
-    watch.on("unlink", async filePath => {
-      /** M1: Sync the file to S3 */
-      try {
-        /** TODO: Move following action to another module */
-        const targetFilePath = s3BucketFilePathbuilder(S3_BUCKET_URL, filePath);
-        const output = await deleteObjects(S3_BUCKET_NAME, [
-          { Key: targetFilePath }
-        ]);
-        console.log(`Files is removed at: ${output}`);
-        /** M2: save to the database */
-      } catch (err) {
-        throw new Error(`Error occurs at watchFileUnlink: ${err.message}`);
-      }
-    });
-  });
-}
-
-/** Close the watcher when app terminates */
-function closeAllFileWatchers(watchers) {
-  watchers.forEach(watch => {
-    watch.close();
-  });
 }
 
 module.exports = {
   initialFilesScan,
   registerFileWatcher,
-  closeAllFileWatchers,
-  watchFileCreation,
-  watchFileChange,
-  watchFileUnlink
+  observeFileChange,
+  observableFileWatchReady
 };
