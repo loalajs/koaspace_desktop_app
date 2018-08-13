@@ -63,15 +63,8 @@ const Files = sequelize.define(
   },
   {
     getterMethods: {
-      fullS3FilePath: () => {
-        const fullPath = this.fullLocalFilePath();
-        return s3BucketFilePathbuilder(S3_BUCKET_URL, fullPath);
-      },
-      fullPath: () =>
-        path.resolve(
-          this.getDataValue("basedir"),
-          this.getDataValue("filename")
-        )
+      fullS3FilePath: () =>
+        s3BucketFilePathbuilder(S3_BUCKET_URL, this.fullPath)
     }
   }
 );

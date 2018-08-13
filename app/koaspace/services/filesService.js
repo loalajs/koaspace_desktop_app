@@ -3,6 +3,7 @@ const { sequelize } = require("../database/setup");
 const { promiseStat } = require("../utils/fsPromisify");
 const { Op } = require("sequelize");
 const { Files } = require("../models/index");
+const { ADMIN_USER_ID } = require("../const");
 
 /** getFileStat Should return the filestat that contains properties
  * @param filePath: string
@@ -25,14 +26,16 @@ async function getFileStat(filePath) {
 
     const expectedStat = {
       counter,
-      filePath,
+      fullPath: filePath,
       basedir: path.dirname(filePath),
-      filename: path.basename(filePath)
+      filename: path.basename(filePath),
+      remoteUpdated: 0,
+      User_id: ADMIN_USER_ID
     };
     const { size, ctime, mtime } = await promiseStat(filePath);
-    expectedStat.filesize = size;
-    expectedStat.filectime = ctime;
-    expectedStat.filemtime = mtime;
+    expectedStat.size = size;
+    // expectedStat.filectime = ctime;
+    // expectedStat.filemtime = mtime;
     return Promise.resolve(expectedStat);
   } catch (err) {
     throw new Error(`Error occurs in getFileStat : ${err.message}`);
@@ -110,6 +113,7 @@ async function getOneFileByPath(filePath) {
  * then yield error
  */
 async function deleteOneFileByPath(filePath) {
+  const transaction = await sequelize.transaction();
   try {
     const result = await Files.destroy({
       where: {
@@ -117,23 +121,53 @@ async function deleteOneFileByPath(filePath) {
       }
     });
     if (!result) {
-      throw new Error(`Nothing is deleted from DB for filePath: ${filePath}`);
+      throw new Error(
+        `Nothing is deleted from DB for filePath: ${filePath}; The filepath should be unique; The transaction is rollback`
+      );
     }
+
+    if (result > 1) {
+      throw new Error(
+        `More than one row has been deleted at filePath: ${filePath} in DB; The filepath should be unique; The transaction is rollback`
+      );
+    }
+    await transaction.commit();
     return Promise.resolve(true);
   } catch (err) {
+    await transaction.rollback();
     throw new Error(`Error occurs in deleteOneFileByPath: ${err.message}`);
   }
 }
 
 /** updateFileFromDB update existing file's metadata, mainly the counter to DB
  * @param filePath: String
- * @return Promise<File Instance>
+ * @return Promise<[count, row]>
  * Steps
  * 1. Get the file stat based on the filePath
  * 2. Update the file by finding based on the file path
  * 3. Return the updated File instance data from DB
  *  */
-async function updateFileFromDB(filePath) {}
+async function updateFileFromDB(filePath) {
+  const transaction = await sequelize.transaction();
+  try {
+    const filestat = await getFileStat(filePath);
+    const [count, row] = await Files.update(filestat, {
+      where: { filePath }
+    });
+
+    if (count > 1 && row > 1) {
+      throw new Error(
+        `More than one row has been updated from db for filePath: ${filePath}. The transaction is rollback`
+      );
+    }
+
+    await transaction.commit();
+    return [count, row];
+  } catch (err) {
+    await transaction.rollback();
+    throw new Error(`Error occurs in updateFileFrom DB: ${err.message}`);
+  }
+}
 
 module.exports = {
   getFileStat,

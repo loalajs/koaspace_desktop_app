@@ -163,6 +163,41 @@ function appendFilePromise(
   });
 }
 
+/** Promise version of mkdir */
+function mkdirPromise(dirpath, mode = 0o777) {
+  return new Promise((resolve, reject) => {
+    fs.mkdir(dirpath, mode, err => {
+      if (err) reject(err);
+      resolve(true);
+    });
+  });
+}
+
+/** removeDir recursively remove directory */
+async function removeDir(dir) {
+  try {
+    const files = await promiseReaddir(dir);
+    return await Promise.all(
+      files.map(async file => {
+        try {
+          const p = path.join(dir, file);
+          const stat = await promiseStat(p);
+          if (stat.isDirectory()) {
+            return await removeDir(p);
+          }
+          return await unlinkPromise(p);
+        } catch (err) {
+          throw new Error(
+            `Error occurs in removeDir in inner map loop: ${err.message}`
+          );
+        }
+      })
+    );
+  } catch (err) {
+    throw new Error(`Error occurs in removeDir: ${err.message}`);
+  }
+}
+
 module.exports = {
   recurReaddir,
   writeFilePromise,
@@ -170,5 +205,7 @@ module.exports = {
   unlinkPromise,
   promiseStat,
   appendFilePromise,
-  ifFileExisted
+  ifFileExisted,
+  mkdirPromise,
+  removeDir
 };

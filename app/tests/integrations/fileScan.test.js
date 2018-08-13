@@ -4,7 +4,9 @@ const {
   writeFilePromise,
   unlinkPromise,
   recurReaddir,
-  appendFilePromise
+  appendFilePromise,
+  mkdirPromise,
+  removeDir
 } = require("../../koaspace/utils/fsPromisify");
 const {
   observeFileChange
@@ -13,13 +15,19 @@ const {
 const {
   fileBulkDeleteByPathList,
   deleteOneFileByPath,
-  updateFileFromDB
+  updateFileFromDB,
+  getOneFileByPath
 } = require("../../koaspace/services/filesService");
 
 const {
   scanAllToDB,
   scanFileToDB
 } = require("../../koaspace/services/filesScanService");
+const {
+  transformPathsFromArrayToRegexp
+} = require("../../koaspace/utils/helpers");
+
+const IGNORED_PATH_REGEXP = transformPathsFromArrayToRegexp(IGNORED_PATH);
 
 /** Scan file is process that save the file metadata to database before it is sync to s3 */
 describe(`[ Files Scan Module ]`, () => {
@@ -47,15 +55,27 @@ describe(`[ Files Scan Module ]`, () => {
    * Step 3: Check if the file has been saved to db
    * Step 4. Delete the file
    * */
-  test(`[ Watch Files Changes - Add one to database ]`, done => {
-    const tempFilePath = path.resolve(process.cwd(), "app", "temp4.txt");
+  test(`[ Watch Files Changes - Add, Update and Delete files in database ]`, async done => {
+    expect.assertions(8);
+    const tempFilePath = path.resolve(
+      process.cwd(),
+      "app",
+      "testwatch1",
+      "temp4.txt"
+    );
+
+    const watchDir = path.dirname(tempFilePath);
+    await expect(mkdirPromise(watchDir)).toBeTruthy();
     /** Step 1: Resgister the file watcher */
-    const fileWatchObservable = observeFileChange();
+    const fileWatchObservable = observeFileChange(watchDir, {
+      ignored: IGNORED_PATH_REGEXP,
+      ignoreInitial: true
+    });
     fileWatchObservable.subscribe({
       async next({ event, filePath }) {
         if (event === "ready") {
           /** Write and create new file */
-          await writeFilePromise(filePath, "hello world");
+          await writeFilePromise(tempFilePath, "hello world");
         } else if (event === "add") {
           /** Save new file to DB  */
           await expect(scanFileToDB(filePath)).resolves.toBeTruthy();
@@ -66,9 +86,10 @@ describe(`[ Files Scan Module ]`, () => {
           ).resolves.toBeTruthy();
         } else if (event === "change") {
           /** Update the file counter and metadata from DB */
-          const updated = await updateFileFromDB(filePath);
+          await updateFileFromDB(filePath);
 
           /** Check the metadata */
+          const updated = await getOneFileByPath(filePath);
           expect(updated).resolves.toBeTruthy();
           expect(updated.counter).toBeGreaterThan(0);
 
@@ -76,7 +97,9 @@ describe(`[ Files Scan Module ]`, () => {
           await expect(unlinkPromise(tempFilePath).resolves.toBeTruthy());
         } else if (event === "unlink") {
           /** Delete from DB */
-          await deleteOneFileByPath(filePath);
+          const number = await deleteOneFileByPath(filePath);
+          expect(number).toBe(1);
+          await expect(removeDir(watchDir)).toBeTruthy();
           done();
         }
       }

@@ -40,12 +40,9 @@ async function initialFilesScan(targetPath, option = {}) {
   }
 }
 
-function observableFileWatchReady() {
+function observableFileWatchReady(root, option) {
   try {
-    const watch = registerFileWatcher(ROOT_PATH, {
-      ignored: IGNORED_PATH_REGEXP,
-      ignoreInitial: true
-    });
+    const watch = registerFileWatcher(root, option);
     return new Observable(observer => {
       watch.on("ready", () => {
         observer.next(true);
@@ -62,12 +59,9 @@ function observableFileWatchReady() {
 }
 
 /** Watch for Files added */
-function observeFileChange() {
+function observeFileChange(root, option) {
   try {
-    const watch = registerFileWatcher(ROOT_PATH, {
-      ignored: IGNORED_PATH_REGEXP,
-      ignoreInitial: true
-    });
+    const watch = registerFileWatcher(root, option);
     return new Observable(observer => {
       watch
         .on("ready", () => {

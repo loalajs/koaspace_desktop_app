@@ -1,4 +1,3 @@
-const { ADMIN_USER_ID } = require("../const");
 const { recurReaddir } = require("../utils/fsPromisify");
 const { getFileStatList, getFileStat } = require("./filesService");
 const { sequelize } = require("../database/setup");
@@ -22,17 +21,8 @@ async function scanAllToDB(rootPath, options = {}) {
     /** Step 2 */
     const fileStatList = await getFileStatList(filePathList);
 
-    const filePropsList = fileStatList.map(filestat => ({
-      filename: filestat.filename,
-      basedir: filestat.basedir,
-      counter: filestat.counter,
-      remoteUpdated: 0,
-      User_id: ADMIN_USER_ID,
-      size: filestat.filesize,
-      fullPath: filestat.filePath
-    }));
     /** Step 3 & 4 */
-    await Files.bulkCreate(filePropsList, { transaction });
+    await Files.bulkCreate(fileStatList, { transaction });
 
     await transaction.commit();
     return Promise.resolve(true);
@@ -54,14 +44,7 @@ async function scanFileToDB(filePath) {
      * 3. Create and save to DB
      */
     const fileprop = await getFileStat(filePath);
-    const createdFile = await Files.create({
-      filename: fileprop.filename,
-      basedir: fileprop.basedir,
-      size: fileprop.filesize,
-      fullPath: fileprop.filePath,
-      counter: fileprop.counter,
-      User_id: ADMIN_USER_ID
-    });
+    const createdFile = await Files.create(fileprop);
     if (createdFile) {
       return Promise.resolve(createdFile);
     }
