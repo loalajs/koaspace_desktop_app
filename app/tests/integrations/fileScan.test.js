@@ -56,53 +56,66 @@ describe(`[ Files Scan Module ]`, () => {
    * Step 4. Delete the file
    * */
   test(`[ Watch Files Changes - Add, Update and Delete files in database ]`, async done => {
-    expect.assertions(8);
-    const tempFilePath = path.resolve(
-      process.cwd(),
-      "app",
-      "testwatch1",
-      "temp4.txt"
-    );
+    try {
+      // expect.assertions(8);
+      const tempFilePath = path.resolve(
+        process.cwd(),
+        "app",
+        "testwatch1",
+        "temp4.txt"
+      );
 
-    const watchDir = path.dirname(tempFilePath);
-    await expect(mkdirPromise(watchDir)).toBeTruthy();
-    /** Step 1: Resgister the file watcher */
-    const fileWatchObservable = observeFileChange(watchDir, {
-      ignored: IGNORED_PATH_REGEXP,
-      ignoreInitial: true
-    });
-    fileWatchObservable.subscribe({
-      async next({ event, filePath }) {
-        if (event === "ready") {
-          /** Write and create new file */
-          await writeFilePromise(tempFilePath, "hello world");
-        } else if (event === "add") {
-          /** Save new file to DB  */
-          await expect(scanFileToDB(filePath)).resolves.toBeTruthy();
+      const watchDir = path.dirname(tempFilePath);
+      await expect(mkdirPromise(watchDir)).resolves.toBeTruthy();
+      /** Step 1: Resgister the file watcher */
+      const fileWatchObservable = observeFileChange(watchDir, {
+        ignored: IGNORED_PATH_REGEXP,
+        ignoreInitial: true
+      });
+      fileWatchObservable.subscribe({
+        async next({ event, filePath }) {
+          if (event === "ready") {
+            /** Write and create new file */
+            console.log(`Debug - READY`);
+            await writeFilePromise(tempFilePath, "hello world");
+          } else if (event === "add") {
+            /** Save new file to DB  */
+            await expect(scanFileToDB(filePath)).resolves.toBeTruthy();
 
-          /** Append some contents */
-          await expect(
-            appendFilePromise(filePath, "Extra Hello world")
-          ).resolves.toBeTruthy();
-        } else if (event === "change") {
-          /** Update the file counter and metadata from DB */
-          await updateFileFromDB(filePath);
+            /** Append some contents */
+            await expect(
+              appendFilePromise(filePath, "Extra Hello world")
+            ).resolves.toBeTruthy();
+            console.log(`Debug - ADD`);
+          } else if (event === "change") {
+            /** Update the file counter and metadata from DB */
+            await updateFileFromDB(filePath);
 
-          /** Check the metadata */
-          const updated = await getOneFileByPath(filePath);
-          expect(updated).resolves.toBeTruthy();
-          expect(updated.counter).toBeGreaterThan(0);
+            /** Check the metadata */
+            const updated = await getOneFileByPath(filePath);
+            expect(updated).toBeTruthy();
+            expect(updated.counter).toBeGreaterThan(0);
 
-          /** Physically delete the file  */
-          await expect(unlinkPromise(tempFilePath).resolves.toBeTruthy());
-        } else if (event === "unlink") {
-          /** Delete from DB */
-          const number = await deleteOneFileByPath(filePath);
-          expect(number).toBe(1);
-          await expect(removeDir(watchDir)).toBeTruthy();
-          done();
+            /** Physically delete the file  */
+            await expect(unlinkPromise(tempFilePath)).resolves.toBeTruthy();
+
+            console.log(`Debug - CHANGE`);
+          } else if (event === "unlink") {
+            /** Delete from DB */
+            const deleteResult = await deleteOneFileByPath(filePath);
+            expect(deleteResult).toBeTruthy();
+            await expect(removeDir(watchDir)).toBeTruthy();
+            done();
+            console.log(`Debug - UNLINK`);
+          }
         }
-      }
-    });
+      });
+    } catch (err) {
+      throw new Error(
+        `Error in tes case [ Watch Files Changes - Add, Update and Delete files in database ] : ${
+          err.message
+        }`
+      );
+    }
   });
 });

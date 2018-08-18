@@ -1,33 +1,11 @@
-const { ROOT_PATH } = require("./const");
+const { updateFileFromDB } = require("./services/filesService");
 
-// const { listFilesFromBucket, syncToBucket } = require("./services/syncService");
-const {
-  initialFilesScan,
-  watchFileChange,
-  watchFileCreation,
-  watchFileUnlink
-} = require("./services/filesWatchService");
-const { IGNORED_PATH } = require("./const");
-// listFilesFromBucket();
-// syncToBucket();
-
-/** Testing Scanning Files */
-initialFilesScan(ROOT_PATH, { filterDirs: IGNORED_PATH });
-
-/** Testting watch files - unlink, add and change */
-// intitalFilesSync();
-watchFileChange();
-watchFileCreation();
-watchFileUnlink();
-
-/**  this is for Electron app
 async function init() {
-  console.log(`App Setup`);
-  // const fileMetadata = await initialSyncAll();
-  // await initialUploadAll(fileMetadata);
+  const result = await updateFileFromDB(
+    "/Users/jameslo/Dropbox/myproject/koaspace-desktop/app/testwatch1/temp4.txt"
+  );
+
+  console.log(result);
 }
 
-module.exports = {
-  init
-};
-*/
+init();

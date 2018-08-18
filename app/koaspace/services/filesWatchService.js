@@ -1,10 +1,6 @@
 const chokidar = require("chokidar");
-const { ROOT_PATH, IGNORED_PATH } = require("../const");
-const { transformPathsFromArrayToRegexp } = require("../utils/helpers");
 const { recurReaddir } = require("../utils/fsPromisify");
 const { Observable } = require("rxjs");
-
-const IGNORED_PATH_REGEXP = transformPathsFromArrayToRegexp(IGNORED_PATH);
 
 /** registerFileWatcher initial the chokidar watcher and return it
  * @param path: String
@@ -40,9 +36,9 @@ async function initialFilesScan(targetPath, option = {}) {
   }
 }
 
-function observableFileWatchReady(root, option) {
+function observableFileWatchReady(watchdir, option) {
   try {
-    const watch = registerFileWatcher(root, option);
+    const watch = registerFileWatcher(watchdir, option);
     return new Observable(observer => {
       watch.on("ready", () => {
         observer.next(true);
@@ -59,9 +55,9 @@ function observableFileWatchReady(root, option) {
 }
 
 /** Watch for Files added */
-function observeFileChange(root, option) {
+function observeFileChange(watchdir, option) {
   try {
-    const watch = registerFileWatcher(root, option);
+    const watch = registerFileWatcher(watchdir, option);
     return new Observable(observer => {
       watch
         .on("ready", () => {

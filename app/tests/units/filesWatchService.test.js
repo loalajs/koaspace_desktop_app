@@ -22,7 +22,7 @@ describe("[ Files Watch Service Unit Tets ]", () => {
    */
   test("[ observeFileCreation ]", async done => {
     try {
-      expect.assertions(5);
+      // expect.assertions(5);
       const tempPath = path.resolve(
         process.cwd(),
         "app",
@@ -30,7 +30,7 @@ describe("[ Files Watch Service Unit Tets ]", () => {
         "temp3.txt"
       );
       const watchDir = path.dirname(tempPath);
-      await expect(mkdirPromise(watchDir)).toBeTruthy();
+      await expect(mkdirPromise(watchDir)).resolves.toBeTruthy();
       observeFileChange(watchDir, {
         ignored: IGNORED_PATH_REGEXP,
         ignoreInitial: true

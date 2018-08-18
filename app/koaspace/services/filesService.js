@@ -18,10 +18,11 @@ const { ADMIN_USER_ID } = require("../const");
  * @TODO: Sperate logic of finding the file */
 async function getFileStat(filePath) {
   try {
-    let counter = await Files.findOne({ where: { fullPath: filePath } })
-      .counter;
-    if (!counter) {
-      counter = 0;
+    const found = await Files.findOne({ where: { fullPath: filePath } });
+
+    let counter = 0;
+    if (found) {
+      counter = found.counter;
     }
 
     const expectedStat = {
@@ -30,12 +31,10 @@ async function getFileStat(filePath) {
       basedir: path.dirname(filePath),
       filename: path.basename(filePath),
       remoteUpdated: 0,
-      User_id: ADMIN_USER_ID
+      UserId: ADMIN_USER_ID
     };
-    const { size, ctime, mtime } = await promiseStat(filePath);
+    const { size } = await promiseStat(filePath);
     expectedStat.size = size;
-    // expectedStat.filectime = ctime;
-    // expectedStat.filemtime = mtime;
     return Promise.resolve(expectedStat);
   } catch (err) {
     throw new Error(`Error occurs in getFileStat : ${err.message}`);
@@ -150,19 +149,37 @@ async function deleteOneFileByPath(filePath) {
 async function updateFileFromDB(filePath) {
   const transaction = await sequelize.transaction();
   try {
-    const filestat = await getFileStat(filePath);
-    const [count, row] = await Files.update(filestat, {
-      where: { filePath }
-    });
+    const {
+      filename,
+      basedir,
+      size,
+      counter,
+      fullPath,
+      remoteUpdated,
+      UserId
+    } = await getFileStat(filePath);
+    const result = Files.update(
+      {
+        filename,
+        basedir,
+        size,
+        counter: counter + 1,
+        fullPath,
+        remoteUpdated,
+        UserId
+      },
+      {
+        where: {
+          fullPath
+        }
+      }
+    );
+    console.log(`${result}`);
 
-    if (count > 1 && row > 1) {
-      throw new Error(
-        `More than one row has been updated from db for filePath: ${filePath}. The transaction is rollback`
-      );
-    }
+    console.log(`${fullPath}: 3`);
 
     await transaction.commit();
-    return [count, row];
+    return result;
   } catch (err) {
     await transaction.rollback();
     throw new Error(`Error occurs in updateFileFrom DB: ${err.message}`);

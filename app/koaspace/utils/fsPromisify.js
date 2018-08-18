@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const rimraf = require("rimraf");
 
 /** Promise version of fs.readdir
  * @param filePath: String
@@ -167,8 +168,11 @@ function appendFilePromise(
 function mkdirPromise(dirpath, mode = 0o777) {
   return new Promise((resolve, reject) => {
     fs.mkdir(dirpath, mode, err => {
-      if (err) reject(err);
-      resolve(true);
+      if (err) {
+        reject(err);
+      } else {
+        resolve(true);
+      }
     });
   });
 }
@@ -176,23 +180,12 @@ function mkdirPromise(dirpath, mode = 0o777) {
 /** removeDir recursively remove directory */
 async function removeDir(dir) {
   try {
-    const files = await promiseReaddir(dir);
-    return await Promise.all(
-      files.map(async file => {
-        try {
-          const p = path.join(dir, file);
-          const stat = await promiseStat(p);
-          if (stat.isDirectory()) {
-            return await removeDir(p);
-          }
-          return await unlinkPromise(p);
-        } catch (err) {
-          throw new Error(
-            `Error occurs in removeDir in inner map loop: ${err.message}`
-          );
-        }
-      })
-    );
+    return new Promise((resolve, reject) => {
+      rimraf(dir, err => {
+        if (err) reject(err);
+        resolve(true);
+      });
+    });
   } catch (err) {
     throw new Error(`Error occurs in removeDir: ${err.message}`);
   }
