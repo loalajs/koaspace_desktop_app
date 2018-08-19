@@ -10,7 +10,7 @@ const Accounts = sequelize.define("Accounts", {
     autoIncrement: true
   },
   isActive: {
-    type: DataTypes.Boolean,
+    type: DataTypes.BOOLEAN,
     allowNull: true,
     defaultValue: "1"
   },
@@ -19,7 +19,7 @@ const Accounts = sequelize.define("Accounts", {
    * 0 means the scan all and upload has done at least once
    */
   isInitial: {
-    type: DataTypes.Boolean,
+    type: DataTypes.BOOLEAN,
     allowNull: false,
     defaultValue: "1"
   },
