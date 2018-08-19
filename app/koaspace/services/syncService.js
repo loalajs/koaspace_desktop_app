@@ -7,7 +7,7 @@ const {
   S3_BUCKET_URL
 } = require("../const");
 
-/** rsync to s3
+/** rsync to s3 @TODO: Use Observable patterns to handle multiple events
  * @param sourceDirPath: string
  * sourceDirPath is the directory from source to sync from
  * @param targetPath: String
@@ -37,11 +37,12 @@ async function syncToBucket(
 /** When app is initiated, sync all the files up to S3
  * aws s3 sync will manage the files sync (by file size and timestamp)
  */
-function intitalFilesSync() {
-  syncToBucket(ROOT_PATH, S3_BUCKET_URL, {
+async function intitalFilesSync() {
+  await syncToBucket(ROOT_PATH, S3_BUCKET_URL, {
     shouldDelete: true,
     isInitial: true
   });
+  return Promise.resolve(true);
 }
 
 module.exports = {
