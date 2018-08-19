@@ -1,8 +1,6 @@
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../database/setup");
 const { Users } = require("./Users");
-const { s3BucketFilePathbuilder } = require("../utils/helpers");
-const { S3_BUCKET_URL } = require("../const");
 
 /** TODO: Added props
  * filesize: int
