@@ -1,6 +1,7 @@
-const exec = require("child_process").exec;
+const { exec, spawn } = require("child_process");
 const path = require("path");
 const { ROOT_PATH } = require("../const");
+const { Observable } = require("rxjs");
 
 /** execPromise is promisified exec function from NodeJs child_process
  * * TODO: Use spawm instead of exec from child_process as exec buffer data in memory, which may cause memory leaks
@@ -17,6 +18,23 @@ function execPromise(command) {
         reject(stderr.trim());
       }
       resolve(stdout.trim());
+    });
+  });
+}
+
+/** spawn */
+function spawnObservable(command) {
+  const cli = spawn(command);
+  return new Observable(observer => {
+    cli.stdout.on("data", data => {
+      observer.next(data);
+    });
+    cli.stderr.on("data", err => {
+      observer.error(err);
+    });
+    cli.on("close", code => {
+      console.log(`Child process existed with the code: ${code}`);
+      observer.complete(code);
     });
   });
 }
@@ -59,5 +77,6 @@ module.exports = {
   execPromise,
   transformPathsFromArrayToRegexp,
   s3BucketFilePathbuilder,
-  getCurrentTimeStampISO
+  getCurrentTimeStampISO,
+  spawnObservable
 };
