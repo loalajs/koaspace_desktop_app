@@ -17,7 +17,7 @@ async function init() {
     await scanAllToDB(ROOT_PATH, {
       filterDirs: IGNORED_PATH
     });
-    /** Step 3: Upload all file to S3 */
+    /** Step 3: Upload all file to S3 @FIXME: USE OBSERVABLE PATTERN */
     await intitalFilesSync();
     return Promise.resolve(true);
   } catch (err) {

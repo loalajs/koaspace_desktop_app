@@ -56,6 +56,7 @@ function transformPathsFromArrayToRegexp(paths) {
  */
 function s3BucketFilePathbuilder(s3BucketRoot, sourceFilePath) {
   let targetFilePath = path.relative(ROOT_PATH, sourceFilePath);
+  /** @TODO: Use nodejs path for this */
   targetFilePath = `${s3BucketRoot}/${targetFilePath}`;
   return targetFilePath;
 }
