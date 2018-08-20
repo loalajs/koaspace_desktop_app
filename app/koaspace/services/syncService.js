@@ -1,4 +1,4 @@
-const { execPromise } = require("../utils/helpers");
+const { execPromise, spawnObservable } = require("../utils/helpers");
 
 const {
   S3_SYNC_EXCLUDE,
@@ -18,7 +18,7 @@ const {
  *  @prop isInitial: boolean / default to false
  *  If isInitial is set to true, the path to target must be set; otherwise if false, target path is set to bucket root
  */
-async function syncToBucket(
+async function syncToBucketExec(
   sourceDirPath,
   targetPath,
   option = { shouldDelete: false, isInitial: false }
@@ -30,7 +30,32 @@ async function syncToBucket(
     console.log(`aws s3 sync stdout: ${result}`);
     return result;
   } catch (err) {
-    throw new Error(`Error occurs in aws s3 sync: ${err.message}`);
+    throw new Error(`Error occurs in syncToBucketExec: ${err.message}`);
+  }
+}
+/** rsync to s3 in observable & child_process.spawn version
+ * @param sourceDirPath: string
+ * sourceDirPath is the directory from source to sync from
+ * @param targetPath: String
+ * targetPath is the s3 dir path to sync
+ * @param option: Object
+ *  @prop shouldDelete: boolean / default to false
+ *  delete prop control if sync will delete files from target if files are found in source not target
+ *  @prop isInitial: boolean / default to false
+ *  If isInitial is set to true, the path to target must be set; otherwise if false, target path is set to bucket root
+ *  @return Observale
+ */
+function syncToBucketSpawn(
+  sourceDirPath,
+  targetPath,
+  option = { shouldDelete: false, isInitial: false }
+) {
+  const deleteOption = option.shouldDelete ? "--delete" : "";
+  const command = `aws s3 sync ${sourceDirPath} ${targetPath} ${S3_SYNC_EXCLUDE} --profile ${S3_PROFILE} ${deleteOption}`;
+  try {
+    return spawnObservable(command);
+  } catch (err) {
+    throw new Error(`Error occurs in syncToBucketSpawn : ${err.message}`);
   }
 }
 
@@ -38,7 +63,7 @@ async function syncToBucket(
  * aws s3 sync will manage the files sync (by file size and timestamp)
  */
 async function intitalFilesSync() {
-  await syncToBucket(ROOT_PATH, S3_BUCKET_URL, {
+  await syncToBucketExec(ROOT_PATH, S3_BUCKET_URL, {
     shouldDelete: true,
     isInitial: true
   });
@@ -46,6 +71,7 @@ async function intitalFilesSync() {
 }
 
 module.exports = {
-  syncToBucket,
-  intitalFilesSync
+  syncToBucketExec,
+  intitalFilesSync,
+  syncToBucketSpawn
 };

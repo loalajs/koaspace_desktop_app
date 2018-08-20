@@ -1,5 +1,5 @@
 const {
-  syncToBucket,
+  syncToBucketExec,
   intitalFilesSync
 } = require("../../koaspace/services/syncService");
 
