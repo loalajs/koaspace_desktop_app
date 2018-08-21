@@ -1,10 +1,13 @@
 const { execPromise, spawnObservable } = require("../utils/helpers");
+const { sequelize } = require("../database/setup");
+const { scanAllToDB } = require("./filesScanService");
 
 const {
   S3_SYNC_EXCLUDE,
   S3_PROFILE,
   ROOT_PATH,
-  S3_BUCKET_URL
+  S3_BUCKET_URL,
+  IGNORED_PATH
 } = require("../const");
 
 /** rsync to s3 @TODO: Use Observable patterns to handle multiple events
@@ -58,8 +61,6 @@ function syncToBucketSpawn(
     return false;
   });
   const firstCommand = args.shift();
-  console.log(`commands: ${command} and first command: ${firstCommand}`);
-  console.log(args);
   try {
     return spawnObservable(firstCommand, args);
   } catch (err) {
@@ -70,16 +71,65 @@ function syncToBucketSpawn(
 /** When app is initiated, sync all the files up to S3
  * aws s3 sync will manage the files sync (by file size and timestamp)
  */
-async function intitalFilesSync() {
-  await syncToBucketExec(ROOT_PATH, S3_BUCKET_URL, {
-    shouldDelete: true,
-    isInitial: true
-  });
-  return Promise.resolve(true);
+async function intitalFilesSyncExec() {
+  const transaction = await sequelize.transaction();
+  try {
+    await scanAllToDB(ROOT_PATH, {
+      filterDirs: IGNORED_PATH
+    });
+
+    await syncToBucketExec(ROOT_PATH, S3_BUCKET_URL, {
+      shouldDelete: true,
+      isInitial: true
+    });
+    await transaction.commit();
+    return Promise.resolve(true);
+  } catch (err) {
+    await transaction.rollback();
+    throw new Error(`Error occurs in intitalFilesSyncExec - ${err.message}`);
+  }
+}
+
+/** intitalFilesSyncSpawn - spawn version of the intitalFilesSync
+ * 1. Scan all to the db under transaction from the Root Directory
+ * 2. Upload files to S3 from the Root Directory
+ * 3. If no error, commit the transaction
+ * @return Promise<Boolean>
+ */
+async function intitalFilesSyncSpawn() {
+  const transaction = await sequelize.transaction();
+  try {
+    /** 1. Scan - save files to DB */
+    await scanAllToDB(ROOT_PATH, {
+      filterDirs: IGNORED_PATH
+    });
+    /** 2. Upload to S3 */
+    const syncToBucketSpawn$ = syncToBucketSpawn(ROOT_PATH, S3_BUCKET_URL, {
+      shouldDelete: true,
+      isInitial: true
+    });
+    syncToBucketSpawn$.subscribe({
+      next(data) {
+        console.log(`syncToBucketSpawn Next: ${data}`);
+      },
+      error(err) {
+        throw new Error(`Error from observable syncToBucketSpwan: ${err}`);
+      },
+      async complete(data) {
+        console.log(`syncToBucketSpawn Complete: ${data}`);
+        await transaction.commit();
+        return Promise.resolve(true);
+      }
+    });
+  } catch (err) {
+    await transaction.rollback();
+    throw new Error(`Error occurs in intitalFilesSyncSpawn: ${err.message}`);
+  }
 }
 
 module.exports = {
   syncToBucketExec,
-  intitalFilesSync,
-  syncToBucketSpawn
+  intitalFilesSyncExec,
+  syncToBucketSpawn,
+  intitalFilesSyncSpawn
 };
