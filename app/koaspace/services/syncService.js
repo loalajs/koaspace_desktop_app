@@ -52,8 +52,16 @@ function syncToBucketSpawn(
 ) {
   const deleteOption = option.shouldDelete ? "--delete" : "";
   const command = `aws s3 sync ${sourceDirPath} ${targetPath} ${S3_SYNC_EXCLUDE} --profile ${S3_PROFILE} ${deleteOption}`;
+  /** Must eliminate empty args */
+  const args = command.split(" ").filter(item => {
+    if (item) return true;
+    return false;
+  });
+  const firstCommand = args.shift();
+  console.log(`commands: ${command} and first command: ${firstCommand}`);
+  console.log(args);
   try {
-    return spawnObservable(command);
+    return spawnObservable(firstCommand, args);
   } catch (err) {
     throw new Error(`Error occurs in syncToBucketSpawn : ${err.message}`);
   }

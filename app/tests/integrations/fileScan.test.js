@@ -37,14 +37,16 @@ describe(`[ Files Scan Module ]`, () => {
    */
   test(`[ Initial Directory Scan - Add all file to database ]`, async () => {
     /** Scan all the db */
+    const scanPath = path.resolve(ROOT_PATH, "app", "tests");
+
     await expect(
-      scanAllToDB(ROOT_PATH, {
+      scanAllToDB(scanPath, {
         filterDirs: IGNORED_PATH
       })
     ).resolves.toBeTruthy();
 
     /** Clearup test data in DB */
-    const filePathList = await recurReaddir(ROOT_PATH, {
+    const filePathList = await recurReaddir(scanPath, {
       filterDirs: IGNORED_PATH
     });
     await expect(fileBulkDeleteByPathList(filePathList)).resolves.toBeTruthy();

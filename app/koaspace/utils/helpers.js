@@ -23,8 +23,8 @@ function execPromise(command) {
 }
 
 /** spawn */
-function spawnObservable(command) {
-  const cli = spawn(command);
+function spawnObservable(command, args) {
+  const cli = spawn(command, args);
   return new Observable(observer => {
     cli.stdout.on("data", data => {
       observer.next(data);
@@ -34,7 +34,7 @@ function spawnObservable(command) {
     });
     cli.on("close", code => {
       console.log(`Child process existed with the code: ${code}`);
-      observer.complete(code);
+      observer.complete(`Done - : ${code}`);
     });
   });
 }
