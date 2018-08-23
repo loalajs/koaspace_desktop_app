@@ -137,6 +137,7 @@ async function intitalFilesSyncSpawn() {
  * 1. get remoteUpdated files
  * 2. donwload file from S3 with the s3 file path to local dirname of the file path
  * @return Promise<Boolean>
+ * @TODO: Add test
  */
 async function syncFromRemote() {
   try {
