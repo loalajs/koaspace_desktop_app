@@ -1,16 +1,19 @@
 const { execPromise, spawnObservable } = require("../utils/helpers");
 const { sequelize } = require("../database/setup");
 const { scanAllToDB } = require("./filesScanService");
+const { findRemoteUpdatedFiles } = require("./filesService");
+const { downloadMultipleFromS3 } = require("./s3StorageService");
 
 const {
   S3_SYNC_EXCLUDE,
   S3_PROFILE,
   ROOT_PATH,
   S3_BUCKET_URL,
-  IGNORED_PATH
+  IGNORED_PATH,
+  ADMIN_USER_ID
 } = require("../const");
 
-/** rsync to s3 @TODO: Use Observable patterns to handle multiple events
+/** rsync to s3
  * @param sourceDirPath: string
  * sourceDirPath is the directory from source to sync from
  * @param targetPath: String
@@ -74,10 +77,12 @@ function syncToBucketSpawn(
 async function intitalFilesSyncExec() {
   const transaction = await sequelize.transaction();
   try {
+    /** Update to DB first */
     await scanAllToDB(ROOT_PATH, {
       filterDirs: IGNORED_PATH
     });
 
+    /** Upload to S3 */
     await syncToBucketExec(ROOT_PATH, S3_BUCKET_URL, {
       shouldDelete: true,
       isInitial: true
@@ -127,9 +132,30 @@ async function intitalFilesSyncSpawn() {
   }
 }
 
+/** syncFromRemote donwload remote updated files to local repository and
+ * update the database files remoteUpdated flag back to 0
+ * 1. get remoteUpdated files
+ * 2. donwload file from S3 with the s3 file path to local dirname of the file path
+ * @return Promise<Boolean>
+ */
+async function syncFromRemote() {
+  try {
+    /** 1. Get remote updated files */
+    const files = findRemoteUpdatedFiles(ADMIN_USER_ID);
+    if (!files) return Promise.resolve(true);
+
+    /** 3. download the files */
+    await downloadMultipleFromS3(files.map(({ fullPath }) => fullPath));
+    return Promise.resolve(true);
+  } catch (err) {
+    throw new Error(`Error occurs in syncFromRemote: ${err.message}`);
+  }
+}
+
 module.exports = {
   syncToBucketExec,
   intitalFilesSyncExec,
   syncToBucketSpawn,
-  intitalFilesSyncSpawn
+  intitalFilesSyncSpawn,
+  syncFromRemote
 };

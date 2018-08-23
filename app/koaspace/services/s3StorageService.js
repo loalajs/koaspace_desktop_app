@@ -82,8 +82,20 @@ function deleteObjects(bucketName, filesKey) {
   });
 }
 
+/** @TODO: Add test */
+async function downloadOneFromS3() {
+  return Promise.resolve(true);
+}
+
+/** @TODO: Add test */
+async function downloadMultipleFromS3() {
+  return Promise.resolve(true);
+}
+
 module.exports = {
   putObject,
   uploadS3,
-  deleteObjects
+  deleteObjects,
+  downloadMultipleFromS3,
+  downloadOneFromS3
 };

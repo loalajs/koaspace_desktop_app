@@ -5,6 +5,28 @@ const { Op } = require("sequelize");
 const { Files } = require("../models/index");
 const { ADMIN_USER_ID } = require("../const");
 
+/** getOneFile get the file from db table Files
+ * @param filePath: string
+ * @return found Files instance from DB or Promise.resovle(false) if not found
+ */
+async function getOneFileByPath(filePath) {
+  try {
+    const found = await Files.findOne({
+      where: {
+        fullPath: filePath
+      }
+    });
+    if (!found) {
+      return Promise(false);
+    }
+    return Promise.resolve(found);
+  } catch (err) {
+    throw new Error(
+      `Error occurs in getOneFileByPath function: ${err.message}`
+    );
+  }
+}
+
 /** getFileStat Should return the filestat that contains properties
  * @param filePath: string
  * @return state object
@@ -14,11 +36,10 @@ const { ADMIN_USER_ID } = require("../const");
  * @prop counter: number
  * @prop filectime: Date
  * @prop filemtime: Date
- *
- * @TODO: Sperate logic of finding the file */
+ */
 async function getFileStat(filePath) {
   try {
-    const found = await Files.findOne({ where: { fullPath: filePath } });
+    const found = await getOneFileByPath(filePath);
 
     let counter = 0;
     if (found) {
@@ -79,28 +100,6 @@ async function fileBulkDeleteByPathList(filePathList) {
   } catch (err) {
     await transaction.rollback();
     throw new Error(`Error occurs in fileBulkDeleteByPathList: ${err.message}`);
-  }
-}
-
-/** getOneFile get the file from db table Files
- * @param filePath: string
- * @return found Files instance from DB or Promise.resovle(false) if not found
- */
-async function getOneFileByPath(filePath) {
-  try {
-    const found = await Files.findOne({
-      where: {
-        fullPath: filePath
-      }
-    });
-    if (!found) {
-      return Promise(false);
-    }
-    return Promise.resolve(found);
-  } catch (err) {
-    throw new Error(
-      `Error occurs in getOneFileByPath function: ${err.message}`
-    );
   }
 }
 
@@ -186,11 +185,36 @@ async function updateFileFromDB(filePath) {
   }
 }
 
+/** findRemoteUpdatedFiles return remote updated files by user
+ * @param userId int
+ * @return file object []
+ * @prop filepath: string
+ * @prop fileid: int
+ * @TODO: Add test
+ */
+async function findRemoteUpdatedFiles(userId) {
+  try {
+    const files = await Files.findAll({
+      where: {
+        UserId: userId,
+        remoteUpdated: 1
+      }
+    });
+
+    if (files.length === 0) return Promise.resolve(false);
+    files.map(({ id, fullPath }) => ({ id, fullPath }));
+    return Promise.resolve(files);
+  } catch (err) {
+    throw new Error(`error occurs in findRemoteUpdatedFiles: ${err.message}`);
+  }
+}
+
 module.exports = {
   getFileStat,
   getFileStatList,
   fileBulkDeleteByPathList,
   getOneFileByPath,
   deleteOneFileByPath,
-  updateFileFromDB
+  updateFileFromDB,
+  findRemoteUpdatedFiles
 };

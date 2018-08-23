@@ -77,7 +77,6 @@ function observeFileChange(watchdir, option) {
         });
       return () => {
         watch.close();
-        // console.log(`Unsubscribe`);
       };
     });
   } catch (err) {
