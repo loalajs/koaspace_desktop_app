@@ -1,5 +1,7 @@
 const AWS = require("aws-sdk");
+const path = require("path");
 const { S3_PROFILE, S3_REGION, S3_API_VERSION } = require("../const");
+const { writeFilePromise, mkdirp, checkDir } = require("../utils/fsPromisify");
 
 /** Setup AWS credentials */
 const credentials = new AWS.SharedIniFileCredentials({
@@ -82,14 +84,44 @@ function deleteObjects(bucketName, filesKey) {
   });
 }
 
-/** @TODO: Add test */
-async function downloadOneFromS3() {
-  return Promise.resolve(true);
+/** getS3Object calls AWS S3 SDK to get data from S3
+ * @param buckeName: String
+ * @param filekey : String. It is same as the local file full path
+ * @return filedata buffer
+ */
+function getS3Object() {}
+
+/** downloadOneFromS3 should download one file from S3 and save it to the local
+ * @param bucketName : String
+ * @param downloadPath : String (Local file path is the key to the S3 object)
+ * @return filedata : Buffer
+ * Steps
+ * 1. Get the data using the getObject function from S3 SDK
+ * 2. Write the file buffer to the target file path
+ * 2.1 Check if directory existed, if exists , write file
+ * 2.2 If dir not existed, create dir and write file
+ */
+async function downloadOneFromS3(bucketName, downloadPath) {
+  try {
+    /** 1. get data */
+    const filedata = await getS3Object(bucketName, downloadPath);
+    if (!filedata)
+      throw new Error(`Error occurs: S3 getObject does not return file data`);
+
+    /** 2. check dir */
+    if (!(await checkDir(downloadPath)))
+      await mkdirp(path.dirname(downloadPath));
+
+    /** 3. Write file */
+    await writeFilePromise(downloadPath, filedata);
+  } catch (err) {
+    throw new Error(`Error occurs in downloadOneFromS3: ${err.message}`);
+  }
 }
 
 /** @TODO: Add test */
 async function downloadMultipleFromS3() {
-  return Promise.resolve(true);
+  return Promise.resolve(false);
 }
 
 module.exports = {

@@ -100,4 +100,8 @@ describe("S3 Module", () => {
       throw new Error(`error occurs in downloadOneFromS3: ${err.message}`);
     }
   });
+
+  test("[ downloadMultipleFromS3 test ]", async () => {
+    await expect(downloadMultipleFromS3).resolves.toBeTruthy();
+  });
 });

@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const rimraf = require("rimraf");
+const { execPromise } = require("./helpers");
 
 /** Promise version of fs.readdir
  * @param filePath: String
@@ -44,26 +45,6 @@ function promiseStat(filePath) {
     });
   }).catch(err => {
     throw new Error(`Error occurs in promiseStat: ${err}`);
-  });
-}
-
-/** ifFileExisted use fs.stat to test file's existence
- * @param filePath: String
- * @return Promise<Boolean> true for file existed otherwise false
- */
-function ifFileExisted(filePath) {
-  return new Promise((resolve, reject) => {
-    fs.stat(filePath, err => {
-      if (err == null) {
-        resolve(true);
-      } else if (err.code === "ENOENT") {
-        resolve(false);
-      } else {
-        reject(err);
-      }
-    });
-  }).catch(err => {
-    throw new Error(`Error occurs in ifFileExisted: ${err}`);
   });
 }
 
@@ -191,6 +172,43 @@ async function removeDir(dir) {
   }
 }
 
+/** mkdirp call mkdir -p dirname in linux / unix system
+ * and return Promise<Boolean>
+ */
+async function mkdirp(dir) {
+  try {
+    const command = `mkdir -p ${dir}`;
+    await execPromise(command);
+    return Promise.resolve(true);
+  } catch (err) {
+    throw new Error(`Error occurs in mkdirp : ${err.message}`);
+  }
+}
+
+/** checkDir check if a file or dir exists in the Unix & Linux system
+ * @param mode : Char<"d" | "f">
+ * @param objectPath : String. Dir or file path
+ * @return Promise<Boolean
+ */
+async function checkDir(mode, objectPath) {
+  try {
+    if (mode !== "f" && mode !== "d")
+      throw new Error(`Unrecognized mode in checkDir`);
+    /** return string "true" or "false" */
+    const shellScriptPath = path.resolve(__dirname, "checkDir.sh");
+    const command = `sh ${shellScriptPath} ${mode} ${objectPath}`;
+    const res = await execPromise(command);
+    if (res === "true") {
+      return Promise.resolve(true);
+    } else if (res === "false") {
+      return Promise.resolve(false);
+    }
+    throw new Error(`Unrecognized return from the checkDir.sh`);
+  } catch (err) {
+    throw new Error(`Error occurs in checkDir : ${err.message}`);
+  }
+}
+
 module.exports = {
   recurReaddir,
   writeFilePromise,
@@ -198,7 +216,8 @@ module.exports = {
   unlinkPromise,
   promiseStat,
   appendFilePromise,
-  ifFileExisted,
   mkdirPromise,
-  removeDir
+  removeDir,
+  mkdirp,
+  checkDir
 };

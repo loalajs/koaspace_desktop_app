@@ -13,7 +13,6 @@ function execPromise(command) {
     exec(command, (error, stdout, stderr) => {
       if (error) {
         reject(error);
-        return;
       } else if (stderr) {
         reject(stderr.trim());
       }
