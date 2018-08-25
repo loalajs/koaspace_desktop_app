@@ -89,7 +89,17 @@ function deleteObjects(bucketName, filesKey) {
  * @param filekey : String. It is same as the local file full path
  * @return filedata buffer
  */
-function getS3Object() {}
+function getS3Object(buckeName, filekey) {
+  const getParam = {
+    Bucket: buckeName,
+    Key: filekey
+  };
+  s3.getObject(getParam, (err, data) => {
+    if (err)
+      return Promise.reject(`Error occurs in the s3 getObject: ${err.message}`);
+    return Promise.resolve(data);
+  });
+}
 
 /** downloadOneFromS3 should download one file from S3 and save it to the local
  * @param bucketName : String
@@ -112,8 +122,10 @@ async function downloadOneFromS3(bucketName, downloadPath) {
     if (!(await checkDir(downloadPath)))
       await mkdirp(path.dirname(downloadPath));
 
-    /** 3. Write file */
-    await writeFilePromise(downloadPath, filedata);
+    /** 3. Write file
+     * @TODO: USE STREAM OR BUFFER
+     */
+    await writeFilePromise(downloadPath, filedata.Body.toString("utf-8"));
   } catch (err) {
     throw new Error(`Error occurs in downloadOneFromS3: ${err.message}`);
   }
