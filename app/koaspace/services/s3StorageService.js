@@ -30,7 +30,8 @@ const s3 = new AWS.S3({
  * @param fileName: String
  * @param fileBody: String
  */
-function putObject(bucketName, fileKey, fileBody) {
+function putObject(bucketName, fileName, fileBody) {
+  const fileKey = path.relative(ROOT_PATH, fileName);
   return new Promise((resolve, reject) => {
     s3.putObject(
       { Bucket: bucketName, Key: fileKey, Body: fileBody },
@@ -49,7 +50,8 @@ function putObject(bucketName, fileKey, fileBody) {
  * @param bucketName: String
  * @param fileKey: String
  * @param fileBody: Buffer | Stream */
-function uploadS3(bucketName, fileKey, fileBody) {
+function uploadS3(bucketName, fileName, fileBody) {
+  const fileKey = path.relative(ROOT_PATH, fileName);
   return new Promise((resolve, reject) => {
     s3.upload(
       { Bucket: bucketName, Key: fileKey, Body: fileBody },
@@ -91,18 +93,21 @@ function deleteObjects(bucketName, filesKey) {
 
 /** getS3Object calls AWS S3 SDK to get data from S3
  * @param buckeName: String
- * @param filekey : String. It is same as the local file full path
+ * @param fileName : String. It is same as the local file full path
  * @return filedata buffer
  */
-function getS3Object(buckeName, filekey) {
+function getS3Object(buckeName, fileName) {
+  const fileKey = path.relative(ROOT_PATH, fileName);
   const getParam = {
     Bucket: buckeName,
-    Key: filekey
+    Key: fileKey
   };
-  s3.getObject(getParam, (err, data) => {
-    if (err)
-      return Promise.reject(`Error occurs in the s3 getObject: ${err.message}`);
-    return Promise.resolve(data);
+  return new Promise((resolve, reject) => {
+    s3.getObject(getParam, (err, data) => {
+      if (err) reject(`Error occurs in the s3 getObject: ${err.message}`);
+      console.log(data);
+      resolve(data);
+    });
   });
 }
 
@@ -120,19 +125,19 @@ function getS3Object(buckeName, filekey) {
 async function downloadOneFromS3(bucketName, downloadPath) {
   try {
     /** 1. get data */
-    const s3FilePath = path.relative(ROOT_PATH, downloadPath);
-    const filedata = await getS3Object(bucketName, s3FilePath);
+    const filedata = await getS3Object(bucketName, downloadPath);
     if (!filedata)
       throw new Error(`Error occurs: S3 getObject does not return file data`);
 
     /** 2. check dir */
-    if (!(await checkDir(downloadPath)))
+    if (!(await checkDir("d", downloadPath)))
       await mkdirp(path.dirname(downloadPath));
 
     /** 3. Write file
      * @TODO: USE STREAM version of write file
      */
     await writeFilePromise(downloadPath, filedata.Body.toString("utf-8"));
+    return Promise.resolve(true);
   } catch (err) {
     throw new Error(`Error occurs in downloadOneFromS3: ${err.message}`);
   }

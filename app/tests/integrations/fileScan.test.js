@@ -31,6 +31,7 @@ const IGNORED_PATH_REGEXP = transformPathsFromArrayToRegexp(IGNORED_PATH);
 
 /** Scan file is process that save the file metadata to database before it is sync to s3 */
 describe(`[ Files Scan Module ]`, () => {
+  jest.setTimeout(500000);
   /** Initial Scan should scan all of files in the local source dir to database
    * Step 1. Scan all files to DB
    * Step 2. Delete all files from database
