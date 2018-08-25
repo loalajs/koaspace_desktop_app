@@ -9,7 +9,6 @@ describe("[ Files Service Unit Tests ]", () => {
    * Steps
    * 1. Create temp file
    * 2. use getFileStat to get the expected result
-   * @TODO: Alter Files table to add filectime & filemtime properties
    */
   test("[ getFileStat ]", async () => {
     const createdFilePath = await createTestFile("test.txt");
@@ -20,8 +19,6 @@ describe("[ Files Service Unit Tests ]", () => {
     expect(received).toHaveProperty("size");
     expect(received).toHaveProperty("basedir");
     expect(received).toHaveProperty("counter", 0);
-    // expect(received).toHaveProperty("filectime");
-    // expect(received).toHaveProperty("filemtime");
     await expect(deleteTestFile("test.txt")).resolves.toBeTruthy();
   });
 

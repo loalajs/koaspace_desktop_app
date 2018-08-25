@@ -5,22 +5,40 @@ const {
   appendFilePromise
 } = require("../../koaspace/utils/fsPromisify");
 
+const {
+  removeDir,
+  checkDir,
+  mkdirp
+} = require("../../koaspace/utils/fsPromisify");
+
+const { ROOT_PATH } = require("../../koaspace/const");
+
 /** Get temp path */
 function getTempPath(filename) {
-  return path.resolve(process.cwd(), "app", filename);
+  return path.resolve(ROOT_PATH, "app", "test_filesService", filename);
 }
 
 /** Create temp file in the /app directory */
 async function createTestFile(filename) {
-  const fullPath = getTempPath(filename);
-  if (await writeFilePromise(fullPath, "Hello world!")) {
-    return fullPath;
+  try {
+    const fullPath = getTempPath(filename);
+    const dirname = path.dirname(fullPath);
+    if (!(await checkDir("d", dirname))) {
+      await mkdirp(dirname);
+    }
+    if (await writeFilePromise(fullPath, "Hello world!")) {
+      return fullPath;
+    }
+    throw new Error(`createTestFile did not write file to ${fullPath}`);
+  } catch (err) {
+    throw new Error(`Error occurs in createTestFile`);
   }
-  throw new Error(`Cannot create Test Files`);
 }
+
 /** Delete temp in the /app directory file */
 function deleteTestFile(filename) {
   const fullPath = getTempPath(filename);
+  removeDir(path.dirname(fullPath));
   return unlinkPromise(fullPath);
 }
 

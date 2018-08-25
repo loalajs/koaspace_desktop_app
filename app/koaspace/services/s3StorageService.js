@@ -1,6 +1,11 @@
 const AWS = require("aws-sdk");
 const path = require("path");
-const { S3_PROFILE, S3_REGION, S3_API_VERSION } = require("../const");
+const {
+  S3_PROFILE,
+  S3_REGION,
+  S3_API_VERSION,
+  ROOT_PATH
+} = require("../const");
 const { writeFilePromise, mkdirp, checkDir } = require("../utils/fsPromisify");
 
 /** Setup AWS credentials */
@@ -104,6 +109,7 @@ function getS3Object(buckeName, filekey) {
 /** downloadOneFromS3 should download one file from S3 and save it to the local
  * @param bucketName : String
  * @param downloadPath : String (Local file path is the key to the S3 object)
+ * Use absolute path
  * @return filedata : Buffer
  * Steps
  * 1. Get the data using the getObject function from S3 SDK
@@ -114,7 +120,8 @@ function getS3Object(buckeName, filekey) {
 async function downloadOneFromS3(bucketName, downloadPath) {
   try {
     /** 1. get data */
-    const filedata = await getS3Object(bucketName, downloadPath);
+    const s3FilePath = path.relative(ROOT_PATH, downloadPath);
+    const filedata = await getS3Object(bucketName, s3FilePath);
     if (!filedata)
       throw new Error(`Error occurs: S3 getObject does not return file data`);
 
@@ -123,7 +130,7 @@ async function downloadOneFromS3(bucketName, downloadPath) {
       await mkdirp(path.dirname(downloadPath));
 
     /** 3. Write file
-     * @TODO: USE STREAM OR BUFFER
+     * @TODO: USE STREAM version of write file
      */
     await writeFilePromise(downloadPath, filedata.Body.toString("utf-8"));
   } catch (err) {

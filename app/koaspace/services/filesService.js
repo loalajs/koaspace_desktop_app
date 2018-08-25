@@ -17,7 +17,7 @@ async function getOneFileByPath(filePath) {
       }
     });
     if (!found) {
-      return Promise(false);
+      return Promise.resolve(false);
     }
     return Promise.resolve(found);
   } catch (err) {
@@ -61,6 +61,8 @@ async function getFileStat(filePath) {
     throw new Error(`Error occurs in getFileStat : ${err.message}`);
   }
 }
+
+/** @TODO: Add function get file stat from DB */
 
 /** getFileStatList should take an array of file paths and
  *  return the array of the filestat
