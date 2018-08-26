@@ -143,8 +143,12 @@ async function downloadOneFromS3(bucketName, downloadPath) {
   }
 }
 
-/** @TODO: Add test */
-async function downloadMultipleFromS3() {
+/** downloadMultipleFromS3 download multiple files from S3 to a given local directory
+ * @param buckeName: String
+ * @param filePaths: String[]
+ * @return Promise<Boolean>
+ */
+async function downloadMultipleFromS3(buckeName, filePaths) {
   return Promise.resolve(false);
 }
 

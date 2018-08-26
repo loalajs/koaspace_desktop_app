@@ -1,4 +1,3 @@
 const { appSyncInit } = require("./controllers/index");
-
-/** FIXME: Add the filter for spawn */
+/** FIXME: Add Setup and Teardown for test */
 appSyncInit();
