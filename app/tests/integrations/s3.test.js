@@ -130,7 +130,7 @@ describe("S3 Module", () => {
     const downloadedFileList = await recurReaddir(downloadFileDir);
 
     /** Check download files */
-    expect(downloadedFileList.length).toHaveLength(2);
+    expect(downloadedFileList).toHaveLength(2);
 
     /** Clean files */
     await removeDir(downloadFileDir);
