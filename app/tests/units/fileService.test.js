@@ -1,8 +1,16 @@
+const path = require("path");
 const {
   getFileStat,
-  getFileStatList
+  getFileStatList,
+  updateFileFromDB,
+  findRemoteUpdatedFiles,
+  fileBulkDeleteByPathList
 } = require("../../koaspace/services/filesService");
 const { createTestFile, deleteTestFile } = require("../helpers/index");
+const { ROOT_PATH, ADMIN_USER_ID } = require("../../koaspace/const");
+const { scanFileToDB } = require("../../koaspace/services/filesScanService");
+const { Files } = require("../../koaspace/models/index");
+const { Op } = require("sequelize");
 
 describe("[ Files Service Unit Tests ]", () => {
   /** *
@@ -46,5 +54,54 @@ describe("[ Files Service Unit Tests ]", () => {
     });
     await expect(deleteTestFile("test1.txt")).resolves.toBeTruthy();
     await expect(deleteTestFile("test2.txt")).resolves.toBeTruthy();
+  });
+
+  /** findRemoteUpdatedFiles return all the files with remoteUpdated flag = 1
+   * 1. Update some files' remoteUpdated to 1 in DB
+   * 2. Call the  findRemoteUpdatedFiles and verify if getting the array of file paths
+   * 3. Restore the file' remoteUpodated back to 0 in DB
+   */
+  test(" [ findRemoteUpdatedFiles & updateFileFromDB ] ", async () => {
+    /** Target two files and scan to DB  */
+    const filePath1 = path.resolves(ROOT_PATH, "client", "src", "index.jsx");
+    const filePath2 = path.resolves(ROOT_PATH, "client", "src", "index.scss");
+
+    const files = await Promise.all(
+      [filePath1, filePath2].map(filePath => scanFileToDB(filePath))
+    );
+
+    expect(files).toHaveLength(2);
+
+    /** Testing updateFileFromDB */
+    const response = await Promise.all(
+      files.map(file => updateFileFromDB(file))
+    );
+    expect(response).toBeTruthy();
+
+    /** Update remoteUpdated */
+    await Files.update(
+      {
+        remoteUpdated: 1
+      },
+      {
+        where: {
+          fullPath: {
+            [Op.in]: [filePath1, filePath2]
+          }
+        }
+      }
+    );
+
+    /** Test findRemoteUpdatedFiles */
+    const remoteUpdatedFiles = await findRemoteUpdatedFiles(ADMIN_USER_ID);
+    expect(remoteUpdatedFiles).toHaveLength(2);
+    remoteUpdatedFiles.forEach(file => {
+      expect(file.counter).toBeGreaterThanOrEqual(1);
+    });
+
+    /** Clean Up */
+    await expect(
+      fileBulkDeleteByPathList([filePath1, filePath2])
+    ).resolves.toBeTruthy();
   });
 });

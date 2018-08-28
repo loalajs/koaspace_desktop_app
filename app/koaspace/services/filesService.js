@@ -42,8 +42,10 @@ async function getFileStat(filePath) {
     const found = await getOneFileByPath(filePath);
 
     let counter = 0;
+    let remoteUpdated = 0;
     if (found) {
       counter = found.counter;
+      remoteUpdated = found.remoteUpdated;
     }
 
     const expectedStat = {
@@ -51,7 +53,7 @@ async function getFileStat(filePath) {
       fullPath: filePath,
       basedir: path.dirname(filePath),
       filename: path.basename(filePath),
-      remoteUpdated: 0,
+      remoteUpdated,
       UserId: ADMIN_USER_ID
     };
     const { size } = await promiseStat(filePath);
@@ -156,7 +158,6 @@ async function updateFileFromDB(filePath) {
       size,
       counter,
       fullPath,
-      remoteUpdated,
       UserId
     } = await getFileStat(filePath);
     const result = Files.update(
@@ -166,7 +167,7 @@ async function updateFileFromDB(filePath) {
         size,
         counter: counter + 1,
         fullPath,
-        remoteUpdated,
+        remoteUpdated: 0,
         UserId
       },
       {
@@ -175,9 +176,6 @@ async function updateFileFromDB(filePath) {
         }
       }
     );
-    console.log(`${result}`);
-
-    console.log(`${fullPath}: 3`);
 
     await transaction.commit();
     return result;
@@ -198,7 +196,7 @@ async function findRemoteUpdatedFiles(userId) {
   try {
     const files = await Files.findAll({
       where: {
-        UserId: userId,
+        User_id: userId,
         remoteUpdated: 1
       }
     });

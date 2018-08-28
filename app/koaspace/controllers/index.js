@@ -20,6 +20,8 @@ async function appSyncInit() {
   }
 }
 
+/** Sync / Download lookup remoteUpdated object from database and download those objects (download function or aws s3 sync ) */
+
 module.exports = {
   appSyncInit
 };
