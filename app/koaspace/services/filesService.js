@@ -40,10 +40,9 @@ async function getOneFileByPath(filePath) {
 async function getFileStat(filePath) {
   try {
     const found = await getOneFileByPath(filePath);
-
     let counter = 0;
-    let remoteUpdated = 0;
-    if (found) {
+    let remoteUpdated = "0";
+    if (found && found.counter && found.remoteUpdated) {
       counter = found.counter;
       remoteUpdated = found.remoteUpdated;
     }
@@ -54,7 +53,7 @@ async function getFileStat(filePath) {
       basedir: path.dirname(filePath),
       filename: path.basename(filePath),
       remoteUpdated,
-      UserId: ADMIN_USER_ID
+      User_id: ADMIN_USER_ID
     };
     const { size } = await promiseStat(filePath);
     expectedStat.size = size;
@@ -158,7 +157,7 @@ async function updateFileFromDB(filePath) {
       size,
       counter,
       fullPath,
-      UserId
+      User_id
     } = await getFileStat(filePath);
     const result = Files.update(
       {
@@ -167,8 +166,8 @@ async function updateFileFromDB(filePath) {
         size,
         counter: counter + 1,
         fullPath,
-        remoteUpdated: 0,
-        UserId
+        remoteUpdated: "0",
+        User_id
       },
       {
         where: {
@@ -181,7 +180,7 @@ async function updateFileFromDB(filePath) {
     return result;
   } catch (err) {
     await transaction.rollback();
-    throw new Error(`Error occurs in updateFileFrom DB: ${err.message}`);
+    throw new Error(`Error occurs in updateFileFromDB: ${err.message}`);
   }
 }
 

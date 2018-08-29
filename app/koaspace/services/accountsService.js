@@ -4,7 +4,7 @@ async function findOneAccountByUserId(userId) {
   try {
     const account = Accounts.findOne({
       where: {
-        user_id: userId
+        User_id: userId
       }
     });
 

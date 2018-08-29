@@ -63,8 +63,8 @@ describe("[ Files Service Unit Tests ]", () => {
    */
   test(" [ findRemoteUpdatedFiles & updateFileFromDB ] ", async () => {
     /** Target two files and scan to DB  */
-    const filePath1 = path.resolves(ROOT_PATH, "client", "src", "index.jsx");
-    const filePath2 = path.resolves(ROOT_PATH, "client", "src", "index.scss");
+    const filePath1 = path.resolve(ROOT_PATH, "client", "src", "index.jsx");
+    const filePath2 = path.resolve(ROOT_PATH, "client", "src", "index.scss");
 
     const files = await Promise.all(
       [filePath1, filePath2].map(filePath => scanFileToDB(filePath))
@@ -74,7 +74,7 @@ describe("[ Files Service Unit Tests ]", () => {
 
     /** Testing updateFileFromDB */
     const response = await Promise.all(
-      files.map(file => updateFileFromDB(file))
+      files.map(file => updateFileFromDB(file.fullPath))
     );
     expect(response).toBeTruthy();
 
