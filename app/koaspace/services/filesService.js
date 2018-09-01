@@ -11,6 +11,8 @@ const { ADMIN_USER_ID } = require("../const");
  */
 async function getOneFileByPath(filePath) {
   try {
+    if (typeof filePath !== "string")
+      throw new Error(`filePath: ${filePath} is not a string.`);
     const found = await Files.findOne({
       where: {
         fullPath: filePath
@@ -60,6 +62,8 @@ async function getFilesByPathList(filePathList) {
  */
 async function getFileStat(filePath) {
   try {
+    if (typeof filePath !== "string")
+      throw new Error(`filePath: ${filePath} is not a string.`);
     const found = await getOneFileByPath(filePath);
     let counter = 0;
     let remoteUpdated = "0";
@@ -97,6 +101,8 @@ function getFileStatList(filePathList) {
    * 4. throw an error if any
    */
   try {
+    if (!Array.isArray(filePathList))
+      throw new Error(`filePathList - ${filePathList} is not an array`);
     const statList = filePathList.map(filePath => getFileStat(filePath));
     return Promise.all(statList);
   } catch (err) {
@@ -110,6 +116,8 @@ function getFileStatList(filePathList) {
  * @param Promise<boolean>
  */
 async function fileBulkDeleteByPathList(filePathList) {
+  if (!Array.isArray(filePathList))
+    throw new Error(`filePathList - ${filePathList} is not an array`);
   const transaction = await sequelize.transaction();
   try {
     await sequelize.getQueryInterface().bulkDelete("Files", {
@@ -133,6 +141,8 @@ async function fileBulkDeleteByPathList(filePathList) {
  * then yield error
  */
 async function deleteOneFileByPath(filePath) {
+  if (typeof filePath !== "string")
+    throw new Error(`filePath: ${filePath} is not a string.`);
   const transaction = await sequelize.transaction();
   try {
     const result = await Files.destroy({
@@ -168,6 +178,8 @@ async function deleteOneFileByPath(filePath) {
  * 3. Return the updated File instance data from DB
  *  */
 async function updateDBFilesFromLocal(filePath) {
+  if (typeof filePath !== "string")
+    throw new Error(`filePath: ${filePath} is not a string.`);
   const transaction = await sequelize.transaction();
   try {
     const {
@@ -235,6 +247,8 @@ async function findRemoteUpdatedFiles(userId) {
  */
 async function toggleOneFileRemoteUpdatedFlag(filePath) {
   try {
+    if (typeof filePath !== "string")
+      throw new Error(`filePath: ${filePath} is not a string.`);
     const found = await getOneFileByPath(filePath);
     if (!found) throw new Error(`Files not found.`);
     const flag = found.remoteUpdated === "1" ? "0" : "1";
