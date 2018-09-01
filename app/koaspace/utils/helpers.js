@@ -4,7 +4,6 @@ const { ROOT_PATH } = require("../const");
 const { Observable } = require("rxjs");
 
 /** execPromise is promisified exec function from NodeJs child_process
- * * TODO: Use spawm instead of exec from child_process as exec buffer data in memory, which may cause memory leaks
  * @param command: string
  * command is shell command such ls, mkdir and etc...
  */
@@ -55,7 +54,6 @@ function transformPathsFromArrayToRegexp(paths) {
  */
 function s3BucketFilePathbuilder(s3BucketRoot, sourceFilePath) {
   let targetFilePath = path.relative(ROOT_PATH, sourceFilePath);
-  /** @TODO: Use nodejs path for this */
   targetFilePath = `${s3BucketRoot}/${targetFilePath}`;
   return targetFilePath;
 }

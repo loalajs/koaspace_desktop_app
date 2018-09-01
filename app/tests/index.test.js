@@ -1,5 +1,13 @@
+const { Files } = require("../koaspace/models/index");
+
 describe("[ Index Module ]", () => {
-  test("Init Test", () => {
-    expect(true).toBe(true);
+  beforeAll(async () => {
+    await Files.destroy({
+      where: {},
+      truncate: true
+    });
+  });
+  test("[ Index ]", () => {
+    expect(true).toBeTruthy();
   });
 });
