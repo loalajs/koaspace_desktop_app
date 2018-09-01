@@ -153,7 +153,9 @@ async function syncFromRemote() {
     await downloadMultipleFromS3(files.map(({ fullPath }) => fullPath));
 
     /** 3. Update files' remoteUpdated flag to 0 */
-    const isUpdated = await toggleFilesRemoteUpdatedFlag();
+    const isUpdated = await toggleFilesRemoteUpdatedFlag(
+      files.map(({ fullPath }) => fullPath)
+    );
 
     return Promise.resolve(isUpdated);
   } catch (err) {

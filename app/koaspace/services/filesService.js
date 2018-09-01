@@ -35,7 +35,7 @@ async function getFilesByPathList(filePathList) {
   try {
     if (!Array.isArray(filePathList))
       throw new Error(`filePathList - ${filePathList} is not an array`);
-    const found = Files.findAll({
+    const found = await Files.findAll({
       where: {
         fullPath: {
           [Op.in]: filePathList
@@ -208,7 +208,6 @@ async function updateDBFilesFromLocal(filePath) {
  * @return file object []
  * @prop filepath: string
  * @prop fileid: int
- * @TODO: Add test
  */
 async function findRemoteUpdatedFiles(userId) {
   try {
@@ -238,9 +237,10 @@ async function toggleOneFileRemoteUpdatedFlag(filePath) {
   try {
     const found = await getOneFileByPath(filePath);
     if (!found) throw new Error(`Files not found.`);
-    const [rows] = await Files.update(
+    const flag = found.remoteUpdated === "1" ? "0" : "1";
+    const [number] = await Files.update(
       {
-        remoteUpdated: !found.remoteUpdated
+        remoteUpdated: flag
       },
       {
         where: {
@@ -248,7 +248,7 @@ async function toggleOneFileRemoteUpdatedFlag(filePath) {
         }
       }
     );
-    if (rows > 0) {
+    if (number > 0) {
       return Promise.resolve(true);
     }
     return Promise.resolve(false);
@@ -264,8 +264,26 @@ async function toggleOneFileRemoteUpdatedFlag(filePath) {
  * @return Promise<Boolean>
  */
 async function toggleFilesRemoteUpdatedFlag(filePathList) {
+  const transaction = await sequelize.transaction();
   try {
+    if (!Array.isArray(filePathList))
+      throw new Error(`filePathList - ${filePathList} is not an array`);
+    const foundFiles = await getFilesByPathList(filePathList);
+
+    /** @NOTE Cannot use update tableName set from tableName (Unless use raw query)
+     * so here need to send multiple update request to DB.
+     */
+    const numbers = await Promise.all(
+      foundFiles.map(file => toggleOneFileRemoteUpdatedFlag(file))
+    );
+    if (numbers.length === filePathList.length) {
+      await transaction.commit();
+      return Promise.resolve(true);
+    }
+    await transaction.rollback();
+    return Promise.resolve(false);
   } catch (err) {
+    await transaction.rollback();
     throw new Error(
       `Error occurs in toggleFilesRemoteUpdatedFlag: ${err.message}`
     );
