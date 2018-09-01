@@ -62,8 +62,10 @@ describe("[ Files Service Unit Tests ]", () => {
    */
   test(" [ findRemoteUpdatedFiles & updateDBFilesFromLocal ] ", async () => {
     /** Target two files and scan to DB  */
-    const filePath1 = path.resolve(ROOT_PATH, "client", "src", "index.jsx");
-    const filePath2 = path.resolve(ROOT_PATH, "client", "src", "index.scss");
+    const testDirName = "test_findRemoteUpdatedFiles_updateDBFilesFromLocal";
+    const filePath1 = await createTestFile("test1.txt", testDirName);
+    const filePath2 = await createTestFile("test2.txt", testDirName);
+    const testDir = path.dirname(filePath1);
 
     const files = await Promise.all(
       [filePath1, filePath2].map(filePath => scanFileToDB(filePath))
@@ -93,7 +95,6 @@ describe("[ Files Service Unit Tests ]", () => {
 
     /** Test findRemoteUpdatedFiles */
     const remoteUpdatedFiles = await findRemoteUpdatedFiles(ADMIN_USER_ID);
-    expect(remoteUpdatedFiles).toHaveLength(2);
     remoteUpdatedFiles.forEach(file => {
       expect(file.counter).toBeGreaterThanOrEqual(1);
     });
@@ -102,5 +103,6 @@ describe("[ Files Service Unit Tests ]", () => {
     await expect(
       fileBulkDeleteByPathList([filePath1, filePath2])
     ).resolves.toBeTruthy();
+    await deleteTestDir(testDir);
   });
 });

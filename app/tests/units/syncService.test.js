@@ -1,9 +1,5 @@
 const path = require("path");
-const {
-  // syncToBucketExec,
-  // intitalFilesSync,
-  syncToBucketSpawn
-} = require("../../koaspace/services/syncService");
+const { syncToBucketSpawn } = require("../../koaspace/services/syncService");
 
 const { ROOT_PATH, S3_BUCKET_URL } = require("../../koaspace/const");
 const { s3BucketFilePathbuilder } = require("../../koaspace/utils/helpers");

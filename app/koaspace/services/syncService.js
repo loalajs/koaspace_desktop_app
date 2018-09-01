@@ -9,6 +9,7 @@ const { downloadMultipleFromS3 } = require("./s3StorageService");
 
 const {
   S3_SYNC_EXCLUDE,
+  S3_BUCKET_NAME,
   S3_PROFILE,
   ROOT_PATH,
   S3_BUCKET_URL,
@@ -145,11 +146,16 @@ async function intitalFilesSyncSpawn() {
 async function syncFromRemote() {
   try {
     /** 1. Get remote updated files */
-    const files = findRemoteUpdatedFiles(ADMIN_USER_ID);
-    if (!files) return Promise.resolve(true);
+    const files = await findRemoteUpdatedFiles(ADMIN_USER_ID);
+    if (!files || files.length === 0) return Promise.resolve(true);
+    if (!Array.isArray(files))
+      throw new Error(`files - ${files} is not an array.`);
 
     /** 2. download the files */
-    await downloadMultipleFromS3(files.map(({ fullPath }) => fullPath));
+    await downloadMultipleFromS3(
+      S3_BUCKET_NAME,
+      files.map(({ fullPath }) => fullPath)
+    );
 
     /** 3. Update files' remoteUpdated flag to 0 */
     const isUpdated = await toggleFilesRemoteUpdatedFlag(

@@ -154,6 +154,8 @@ async function downloadMultipleFromS3(buckeName, filePaths) {
    * 2. In each iteration, call the function downloadOneFromS3
    */
   try {
+    if (!Array.isArray(filePaths))
+      throw new Error(`filePaths - ${filePaths} is not an array.`);
     const results = filePaths.map(filePath =>
       downloadOneFromS3(buckeName, filePath)
     );

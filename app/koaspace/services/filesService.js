@@ -223,15 +223,19 @@ async function updateDBFilesFromLocal(filePath) {
  */
 async function findRemoteUpdatedFiles(userId) {
   try {
-    const files = await Files.findAll({
+    let files = await Files.findAll({
       where: {
         User_id: userId,
-        remoteUpdated: 1
+        remoteUpdated: "1"
       }
     });
 
     if (files.length === 0) return Promise.resolve(false);
-    files.map(({ id, fullPath }) => ({ id, fullPath }));
+    files = files.map(({ id, fullPath, counter }) => ({
+      id,
+      fullPath,
+      counter
+    }));
     return Promise.resolve(files);
   } catch (err) {
     throw new Error(`error occurs in findRemoteUpdatedFiles: ${err.message}`);
@@ -288,7 +292,7 @@ async function toggleFilesRemoteUpdatedFlag(filePathList) {
      * so here need to send multiple update request to DB.
      */
     const numbers = await Promise.all(
-      foundFiles.map(file => toggleOneFileRemoteUpdatedFlag(file))
+      foundFiles.map(({ fullPath }) => toggleOneFileRemoteUpdatedFlag(fullPath))
     );
     if (numbers.length === filePathList.length) {
       await transaction.commit();
