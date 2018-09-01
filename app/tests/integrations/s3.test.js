@@ -7,14 +7,12 @@ const {
   uploadS3
 } = require("../../koaspace/services/s3StorageService");
 const {
-  unlinkPromise,
   readFilePromise,
-  writeFilePromise,
-  mkdirp,
   removeDir,
   recurReaddir
 } = require("../../koaspace/utils/fsPromisify");
 const { S3_BUCKET_NAME, ROOT_PATH } = require("../../koaspace/const");
+const { createTestFile, deleteTestDir } = require("../helpers/index");
 
 describe("S3 Module", () => {
   jest.setTimeout(50000);
@@ -26,10 +24,10 @@ describe("S3 Module", () => {
      *  body: hello world
      *  bucket-name: loala-test
      */
-    const tempSourceFilePath = path.resolve(process.cwd(), "app", "temp2.txt");
+    const testDirName = "deleteObjects";
+    const tempSourceFilePath = await createTestFile("temp2.txt", testDirName);
     const tempTargetFilePath = path.relative(ROOT_PATH, tempSourceFilePath);
     try {
-      await writeFilePromise(tempSourceFilePath, "Hello world");
       const data = await readFilePromise(tempSourceFilePath);
       const targetFileCreatedResult = await putObject(
         S3_BUCKET_NAME,
@@ -42,7 +40,10 @@ describe("S3 Module", () => {
       ]);
       expect(targetFileDeleteResult).toBeTruthy();
 
-      await expect(unlinkPromise(tempSourceFilePath)).resolves.toBeTruthy();
+      /** Clean up */
+      await expect(
+        deleteTestDir(path.dirname(tempSourceFilePath))
+      ).resolves.toBeTruthy();
     } catch (err) {
       throw new Error(
         `Error occurs in test case: deleteObjects : ${err.message}`
@@ -57,14 +58,9 @@ describe("S3 Module", () => {
    */
   test("[ downloadOneFromS3 ]", async () => {
     /** Create test dir and file */
-    const downloadFilePath = path.resolve(
-      ROOT_PATH,
-      "app",
-      "testdownloads3",
-      "test.txt"
-    );
-    await mkdirp(path.dirname(downloadFilePath));
-    await writeFilePromise(downloadFilePath, "Hello world");
+    const dirName = "downloadOneFromS3";
+    const fileName = "test.txt";
+    const downloadFilePath = await createTestFile(fileName, dirName);
     const data = await readFilePromise(downloadFilePath);
 
     /** Call upload and delete locally */
@@ -83,34 +79,24 @@ describe("S3 Module", () => {
     expect(downloaded).toEqual(data);
 
     /** data cleaning */
-    await removeDir(path.dirname(downloadFilePath));
-    await deleteObjects(S3_BUCKET_NAME, [{ Key: downloadFilePath }]);
+    await expect(
+      deleteTestDir(path.dirname(downloadFilePath))
+    ).resolves.toBeTruthy();
+    await expect(
+      deleteObjects(S3_BUCKET_NAME, [{ Key: downloadFilePath }])
+    ).resolves.toBeTruthy();
   });
 
   test("[ downloadMultipleFromS3 test ]", async () => {
     /** Create test files */
-
-    const downloadFilePath1 = path.resolve(
-      ROOT_PATH,
-      "app",
-      "test_multiple_downloads3",
-      "test1.txt"
-    );
-    const downloadFilePath2 = path.resolve(
-      ROOT_PATH,
-      "app",
-      "test_multiple_downloads3",
-      "test2.txt"
-    );
+    const testDirName = "test_multiple_downloads3";
+    const downloadFilePath1 = await createTestFile("test1.txt", testDirName);
+    const downloadFilePath2 = await createTestFile("test2.txt", testDirName);
     const downloadFileDir = path.dirname(downloadFilePath1);
-    await mkdirp(downloadFileDir);
-    await writeFilePromise(downloadFilePath1, "Hello world - 1");
-    await writeFilePromise(downloadFilePath2, "Hello world - 2");
     const data1 = await readFilePromise(downloadFilePath1);
     const data2 = await readFilePromise(downloadFilePath2);
 
     /** Upload test files */
-
     await expect(
       uploadS3(S3_BUCKET_NAME, downloadFilePath1, data1)
     ).resolves.toBeTruthy();
@@ -119,11 +105,10 @@ describe("S3 Module", () => {
     ).resolves.toBeTruthy();
 
     /** Clean the local files after upload */
-    await expect(unlinkPromise(downloadFilePath1)).toBeTruthy();
-    await expect(unlinkPromise(downloadFilePath2)).toBeTruthy();
-    const filelist = [downloadFilePath1, downloadFilePath2];
+    await expect(deleteTestDir(downloadFileDir)).resolves.toBeTruthy();
 
     /** Download files */
+    const filelist = [downloadFilePath1, downloadFilePath2];
     await expect(
       downloadMultipleFromS3(S3_BUCKET_NAME, filelist)
     ).resolves.toBeTruthy();
@@ -133,10 +118,12 @@ describe("S3 Module", () => {
     expect(downloadedFileList).toHaveLength(2);
 
     /** Clean files */
-    await removeDir(downloadFileDir);
-    await deleteObjects(S3_BUCKET_NAME, [
-      { Key: downloadFilePath1 },
-      { Key: downloadFilePath2 }
-    ]);
+    await expect(deleteTestDir(downloadFileDir)).resolves.toBeTruthy();
+    await expect(
+      deleteObjects(S3_BUCKET_NAME, [
+        { Key: downloadFilePath1 },
+        { Key: downloadFilePath2 }
+      ])
+    ).resolves.toBeTruthy();
   });
 });

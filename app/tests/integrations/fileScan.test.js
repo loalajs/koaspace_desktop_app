@@ -60,7 +60,6 @@ describe(`[ Files Scan Module ]`, () => {
    * */
   test(`[ Watch Files Changes - Add, Update and Delete files in database ]`, async done => {
     try {
-      // expect.assertions(8);
       const tempFilePath = path.resolve(
         process.cwd(),
         "app",

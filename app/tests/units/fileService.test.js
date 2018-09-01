@@ -6,7 +6,7 @@ const {
   findRemoteUpdatedFiles,
   fileBulkDeleteByPathList
 } = require("../../koaspace/services/filesService");
-const { createTestFile, deleteTestFile } = require("../helpers/index");
+const { createTestFile, deleteTestDir } = require("../helpers/index");
 const { ROOT_PATH, ADMIN_USER_ID } = require("../../koaspace/const");
 const { scanFileToDB } = require("../../koaspace/services/filesScanService");
 const { Files } = require("../../koaspace/models/index");
@@ -19,7 +19,8 @@ describe("[ Files Service Unit Tests ]", () => {
    * 2. use getFileStat to get the expected result
    */
   test("[ getFileStat ]", async () => {
-    const createdFilePath = await createTestFile("test.txt");
+    const testDir = "test_filesService_getFileStat";
+    const createdFilePath = await createTestFile("test.txt", testDir);
     const received = await getFileStat(createdFilePath);
     expect(received).toBeTruthy();
     expect(received).toHaveProperty("fullPath", createdFilePath);
@@ -27,7 +28,7 @@ describe("[ Files Service Unit Tests ]", () => {
     expect(received).toHaveProperty("size");
     expect(received).toHaveProperty("basedir");
     expect(received).toHaveProperty("counter", 0);
-    await expect(deleteTestFile("test.txt")).resolves.toBeTruthy();
+    await expect(deleteTestDir(testDir)).resolves.toBeTruthy();
   });
 
   /** Steps
@@ -37,8 +38,9 @@ describe("[ Files Service Unit Tests ]", () => {
    * 4. Test if object in an array is expected FileStat object
    * */
   test("[ getFileStatList ]", async () => {
-    const tempFilePath1 = await createTestFile("test1.txt");
-    const tempFilePath2 = await createTestFile("test2.txt");
+    const testDir = "test_filesService_getFileStatList";
+    const tempFilePath1 = await createTestFile("test1.txt", testDir);
+    const tempFilePath2 = await createTestFile("test2.txt", testDir);
     const fileStatList = await getFileStatList([tempFilePath1, tempFilePath2]);
     expect(fileStatList).toBeTruthy();
 
@@ -49,11 +51,8 @@ describe("[ Files Service Unit Tests ]", () => {
       expect(filestat).toHaveProperty("filename");
       expect(filestat).toHaveProperty("size");
       expect(filestat).toHaveProperty("counter", 0);
-      // expect(filestat).toHaveProperty("filectime");
-      // expect(filestat).toHaveProperty("filemtime");
     });
-    await expect(deleteTestFile("test1.txt")).resolves.toBeTruthy();
-    await expect(deleteTestFile("test2.txt")).resolves.toBeTruthy();
+    await expect(deleteTestDir(testDir)).resolves.toBeTruthy();
   });
 
   /** findRemoteUpdatedFiles return all the files with remoteUpdated flag = 1
