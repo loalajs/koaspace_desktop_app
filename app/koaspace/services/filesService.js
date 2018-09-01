@@ -27,6 +27,17 @@ async function getOneFileByPath(filePath) {
   }
 }
 
+/** getFilesByPathList
+ * @param filePathList: String[]
+ * @return Files[]
+ */
+async function getFilesByPathList() {
+  try {
+  } catch (err) {
+    throw new Error(`Error occurs in getFilesByPathList: ${err.message}`);
+  }
+}
+
 /** getFileStat Should return the filestat that contains properties
  * @param filePath: string
  * @return state object
@@ -140,7 +151,7 @@ async function deleteOneFileByPath(filePath) {
   }
 }
 
-/** updateFileFromDB update existing file's metadata, mainly the counter to DB
+/** updateDBFilesFromLocal update existing file's metadata, mainly the counter to DB
  * @param filePath: String
  * @return Promise<[count, row]>
  * Steps
@@ -148,7 +159,7 @@ async function deleteOneFileByPath(filePath) {
  * 2. Update the file by finding based on the file path
  * 3. Return the updated File instance data from DB
  *  */
-async function updateFileFromDB(filePath) {
+async function updateDBFilesFromLocal(filePath) {
   const transaction = await sequelize.transaction();
   try {
     const {
@@ -180,7 +191,7 @@ async function updateFileFromDB(filePath) {
     return result;
   } catch (err) {
     await transaction.rollback();
-    throw new Error(`Error occurs in updateFileFromDB: ${err.message}`);
+    throw new Error(`Error occurs in updateDBFilesFromLocal: ${err.message}`);
   }
 }
 
@@ -208,12 +219,59 @@ async function findRemoteUpdatedFiles(userId) {
   }
 }
 
+/** toggleFilesRemoteUpdatedFlag toggle remoteUpdated flag from the file in DB
+ * @param filePath: String.
+ * @return Promise<Boolean>
+ * Note that it would throw error if the file cannot be found
+ * If affected rows is larger than 0, then return Promise true
+ * Otherwise return promise false
+ */
+async function toggleOneFileRemoteUpdatedFlag(filePath) {
+  try {
+    const found = await getOneFileByPath(filePath);
+    if (!found) throw new Error(`Files not found.`);
+    const [rows] = await Files.update(
+      {
+        remoteUpdated: !found.remoteUpdated
+      },
+      {
+        where: {
+          id: found.id
+        }
+      }
+    );
+    if (rows > 0) {
+      return Promise.resolve(true);
+    }
+    return Promise.resolve(false);
+  } catch (err) {
+    throw new Error(
+      `Error occurs in toggleFilesRemoteUpdatedFlag: ${err.message}`
+    );
+  }
+}
+
+/** function toggleFilesRemoteUpdatedFlag toggle multiple files' remoteUpdated falg
+ * @param filePathList
+ * @return Promise<Boolean>
+ */
+async function toggleFilesRemoteUpdatedFlag(filePathList) {
+  try {
+  } catch (err) {
+    throw new Error(
+      `Error occurs in toggleFilesRemoteUpdatedFlag: ${err.message}`
+    );
+  }
+}
+
 module.exports = {
   getFileStat,
   getFileStatList,
   fileBulkDeleteByPathList,
   getOneFileByPath,
   deleteOneFileByPath,
-  updateFileFromDB,
-  findRemoteUpdatedFiles
+  updateDBFilesFromLocal,
+  findRemoteUpdatedFiles,
+  toggleOneFileRemoteUpdatedFlag,
+  toggleFilesRemoteUpdatedFlag
 };

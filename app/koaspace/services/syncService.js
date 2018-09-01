@@ -1,7 +1,10 @@
 const { execPromise, spawnObservable } = require("../utils/helpers");
 const { sequelize } = require("../database/setup");
 const { scanAllToDB } = require("./filesScanService");
-const { findRemoteUpdatedFiles } = require("./filesService");
+const {
+  findRemoteUpdatedFiles,
+  toggleFilesRemoteUpdatedFlag
+} = require("./filesService");
 const { downloadMultipleFromS3 } = require("./s3StorageService");
 
 const {
@@ -136,6 +139,7 @@ async function intitalFilesSyncSpawn() {
  * update the database files remoteUpdated flag back to 0
  * 1. get remoteUpdated files
  * 2. donwload file from S3 with the s3 file path to local dirname of the file path
+ * 3. Update files' remoteUpdated flag to 0
  * @return Promise<Boolean>
  * @TODO: Add test
  */
@@ -145,9 +149,13 @@ async function syncFromRemote() {
     const files = findRemoteUpdatedFiles(ADMIN_USER_ID);
     if (!files) return Promise.resolve(true);
 
-    /** 3. download the files */
+    /** 2. download the files */
     await downloadMultipleFromS3(files.map(({ fullPath }) => fullPath));
-    return Promise.resolve(true);
+
+    /** 3. Update files' remoteUpdated flag to 0 */
+    const isUpdated = await toggleFilesRemoteUpdatedFlag();
+
+    return Promise.resolve(isUpdated);
   } catch (err) {
     throw new Error(`Error occurs in syncFromRemote: ${err.message}`);
   }

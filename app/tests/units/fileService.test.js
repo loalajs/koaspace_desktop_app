@@ -2,7 +2,7 @@ const path = require("path");
 const {
   getFileStat,
   getFileStatList,
-  updateFileFromDB,
+  updateDBFilesFromLocal,
   findRemoteUpdatedFiles,
   fileBulkDeleteByPathList
 } = require("../../koaspace/services/filesService");
@@ -61,7 +61,7 @@ describe("[ Files Service Unit Tests ]", () => {
    * 2. Call the  findRemoteUpdatedFiles and verify if getting the array of file paths
    * 3. Restore the file' remoteUpodated back to 0 in DB
    */
-  test(" [ findRemoteUpdatedFiles & updateFileFromDB ] ", async () => {
+  test(" [ findRemoteUpdatedFiles & updateDBFilesFromLocal ] ", async () => {
     /** Target two files and scan to DB  */
     const filePath1 = path.resolve(ROOT_PATH, "client", "src", "index.jsx");
     const filePath2 = path.resolve(ROOT_PATH, "client", "src", "index.scss");
@@ -72,9 +72,9 @@ describe("[ Files Service Unit Tests ]", () => {
 
     expect(files).toHaveLength(2);
 
-    /** Testing updateFileFromDB */
+    /** Testing updateDBFilesFromLocal */
     const response = await Promise.all(
-      files.map(file => updateFileFromDB(file.fullPath))
+      files.map(file => updateDBFilesFromLocal(file.fullPath))
     );
     expect(response).toBeTruthy();
 

@@ -15,7 +15,7 @@ const {
 const {
   fileBulkDeleteByPathList,
   deleteOneFileByPath,
-  updateFileFromDB,
+  updateDBFilesFromLocal,
   getOneFileByPath
 } = require("../../koaspace/services/filesService");
 
@@ -92,7 +92,7 @@ describe(`[ Files Scan Module ]`, () => {
             console.log(`Debug - ADD`);
           } else if (event === "change") {
             /** Update the file counter and metadata from DB */
-            await updateFileFromDB(filePath);
+            await updateDBFilesFromLocal(filePath);
 
             /** Check the metadata */
             const updated = await getOneFileByPath(filePath);
