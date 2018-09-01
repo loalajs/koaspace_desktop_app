@@ -31,8 +31,18 @@ async function getOneFileByPath(filePath) {
  * @param filePathList: String[]
  * @return Files[]
  */
-async function getFilesByPathList() {
+async function getFilesByPathList(filePathList) {
   try {
+    if (!Array.isArray(filePathList))
+      throw new Error(`filePathList - ${filePathList} is not an array`);
+    const found = Files.findAll({
+      where: {
+        fullPath: {
+          [Op.in]: filePathList
+        }
+      }
+    });
+    return Promise.resolve(found);
   } catch (err) {
     throw new Error(`Error occurs in getFilesByPathList: ${err.message}`);
   }
@@ -73,8 +83,6 @@ async function getFileStat(filePath) {
     throw new Error(`Error occurs in getFileStat : ${err.message}`);
   }
 }
-
-/** @TODO: Add function get file stat from DB */
 
 /** getFileStatList should take an array of file paths and
  *  return the array of the filestat
@@ -273,5 +281,6 @@ module.exports = {
   updateDBFilesFromLocal,
   findRemoteUpdatedFiles,
   toggleOneFileRemoteUpdatedFlag,
-  toggleFilesRemoteUpdatedFlag
+  toggleFilesRemoteUpdatedFlag,
+  getFilesByPathList
 };
