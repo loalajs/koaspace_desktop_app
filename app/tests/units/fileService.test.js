@@ -7,7 +7,7 @@ const {
   fileBulkDeleteByPathList
 } = require("../../koaspace/services/filesService");
 const { createTestFile, deleteTestDir } = require("../helpers/index");
-const { ROOT_PATH, ADMIN_USER_ID } = require("../../koaspace/const");
+const { ADMIN_USER_ID } = require("../../koaspace/const");
 const { scanFileToDB } = require("../../koaspace/services/filesScanService");
 const { Files } = require("../../koaspace/models/index");
 const { Op } = require("sequelize");
@@ -19,8 +19,9 @@ describe("[ Files Service Unit Tests ]", () => {
    * 2. use getFileStat to get the expected result
    */
   test("[ getFileStat ]", async () => {
-    const testDir = "test_filesService_getFileStat";
-    const createdFilePath = await createTestFile("test.txt", testDir);
+    const testDirName = "test_filesService_getFileStat";
+    const createdFilePath = await createTestFile("test.txt", testDirName);
+    const testDir = path.dirname(createdFilePath);
     const received = await getFileStat(createdFilePath);
     expect(received).toBeTruthy();
     expect(received).toHaveProperty("fullPath", createdFilePath);
@@ -38,9 +39,10 @@ describe("[ Files Service Unit Tests ]", () => {
    * 4. Test if object in an array is expected FileStat object
    * */
   test("[ getFileStatList ]", async () => {
-    const testDir = "test_filesService_getFileStatList";
-    const tempFilePath1 = await createTestFile("test1.txt", testDir);
-    const tempFilePath2 = await createTestFile("test2.txt", testDir);
+    const testDirName = "test_filesService_getFileStatList";
+    const tempFilePath1 = await createTestFile("test1.txt", testDirName);
+    const tempFilePath2 = await createTestFile("test2.txt", testDirName);
+    const testDir = path.dirname(tempFilePath1);
     const fileStatList = await getFileStatList([tempFilePath1, tempFilePath2]);
     expect(fileStatList).toBeTruthy();
 
@@ -75,14 +77,14 @@ describe("[ Files Service Unit Tests ]", () => {
 
     /** Testing updateDBFilesFromLocal */
     const response = await Promise.all(
-      files.map(file => updateDBFilesFromLocal(file.fullPath))
+      files.map(({ fullPath }) => updateDBFilesFromLocal(fullPath))
     );
     expect(response).toBeTruthy();
 
     /** Update remoteUpdated */
     await Files.update(
       {
-        remoteUpdated: 1
+        remoteUpdated: "1"
       },
       {
         where: {
@@ -94,7 +96,9 @@ describe("[ Files Service Unit Tests ]", () => {
     );
 
     /** Test findRemoteUpdatedFiles */
-    const remoteUpdatedFiles = await findRemoteUpdatedFiles(ADMIN_USER_ID);
+    const remoteUpdatedFiles = await findRemoteUpdatedFiles(ADMIN_USER_ID, {
+      filePathList: [filePath1, filePath2]
+    });
     remoteUpdatedFiles.forEach(file => {
       expect(file.counter).toBeGreaterThanOrEqual(1);
     });

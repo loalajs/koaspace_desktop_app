@@ -16,7 +16,7 @@ const { ROOT_PATH } = require("../../koaspace/const");
 function getTempPath(filename, dirName) {
   if (!dirName || !filename)
     throw new Error(`dirName and fileName cannot be undefined`);
-  return path.resolve(ROOT_PATH, "app", dirName, filename);
+  return path.resolve(ROOT_PATH, "test_app", dirName, filename);
 }
 
 /** Create temp file in the /app directory

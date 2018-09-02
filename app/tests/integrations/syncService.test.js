@@ -18,7 +18,7 @@ describe("[ syncService Integration Test ]", () => {
    * changed to "0"
    * 5. Clean up files - Remove from S3 & Remove from DB
    */
-  test("[ syncFromRemote - Downloaded remnoted updated fle and update the remoteUpdated flag to 0 ]", async () => {
+  test("[ syncFromRemote - Downloaded remnoted updated file and update the remoteUpdated flag to 0 ]", async () => {
     /** 1. Prepare 2 remoteUpdated files and insert into to DB */
     const testDirName = "test_syncFromRemote";
     const testFilePath1 = await createTestFile("test1.txt", testDirName);

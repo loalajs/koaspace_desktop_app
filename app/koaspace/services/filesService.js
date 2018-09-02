@@ -217,18 +217,40 @@ async function updateDBFilesFromLocal(filePath) {
 
 /** findRemoteUpdatedFiles return remote updated files by user
  * @param userId int
+ * @param whereOption default to {}
+ * @prop filePathList: string[]
  * @return file object []
  * @prop filepath: string
  * @prop fileid: int
  */
-async function findRemoteUpdatedFiles(userId) {
+async function findRemoteUpdatedFiles(userId, whereOption = {}) {
   try {
-    let files = await Files.findAll({
-      where: {
-        User_id: userId,
-        remoteUpdated: "1"
-      }
-    });
+    const { filePathList } = whereOption;
+    let whereParam;
+    if (
+      filePathList &&
+      Array.isArray(filePathList) &&
+      filePathList.length > 0
+    ) {
+      whereParam = {
+        where: {
+          User_id: userId,
+          remoteUpdated: "1",
+          fullPath: {
+            [Op.in]: filePathList
+          }
+        }
+      };
+    } else {
+      whereParam = {
+        where: {
+          User_id: userId,
+          remoteUpdated: "1"
+        }
+      };
+    }
+
+    let files = await Files.findAll(whereParam);
 
     if (files.length === 0) return Promise.resolve(false);
     files = files.map(({ id, fullPath, counter }) => ({

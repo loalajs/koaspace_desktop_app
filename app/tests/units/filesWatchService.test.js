@@ -5,14 +5,13 @@ const {
 const {
   writeFilePromise,
   appendFilePromise,
-  unlinkPromise,
-  mkdirPromise,
-  removeDir
+  unlinkPromise
 } = require("../../koaspace/utils/fsPromisify");
 const { IGNORED_PATH } = require("../../koaspace/const");
 const {
   transformPathsFromArrayToRegexp
 } = require("../../koaspace/utils/helpers");
+const { createTestFile, deleteTestDir } = require("../helpers/index");
 
 const IGNORED_PATH_REGEXP = transformPathsFromArrayToRegexp(IGNORED_PATH);
 
@@ -22,15 +21,9 @@ describe("[ Files Watch Service Unit Tets ]", () => {
    */
   test("[ observeFileCreation ]", async done => {
     try {
-      // expect.assertions(5);
-      const tempPath = path.resolve(
-        process.cwd(),
-        "app",
-        "testwatch2",
-        "temp3.txt"
-      );
+      const testDirName = "test_observeFileCreation";
+      const tempPath = await createTestFile("temp3.txt", testDirName);
       const watchDir = path.dirname(tempPath);
-      await expect(mkdirPromise(watchDir)).resolves.toBeTruthy();
       observeFileChange(watchDir, {
         ignored: IGNORED_PATH_REGEXP,
         ignoreInitial: true
@@ -47,7 +40,7 @@ describe("[ Files Watch Service Unit Tets ]", () => {
             await unlinkPromise(value.filePath);
           } else if (value.event === "unlink") {
             expect(value).toEqual({ event: "unlink", filePath: tempPath });
-            await expect(removeDir(watchDir)).toBeTruthy();
+            await expect(deleteTestDir(watchDir)).toBeTruthy();
             done();
           } else {
             throw new Error(`Unrecognise event value: ${value}`);

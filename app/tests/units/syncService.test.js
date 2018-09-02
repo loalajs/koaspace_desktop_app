@@ -7,7 +7,7 @@ const { s3BucketFilePathbuilder } = require("../../koaspace/utils/helpers");
 describe("[ Sync Service Units Test ]", () => {
   /**  */
   test("[ Test - syncToBucket ]", async done => {
-    jest.setTimeout(50000);
+    jest.setTimeout(100000);
     try {
       const sourcePath = path.resolve(ROOT_PATH, "app");
       const s3RootPath = s3BucketFilePathbuilder(S3_BUCKET_URL, sourcePath);
