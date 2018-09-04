@@ -6,6 +6,7 @@ const {
   toggleFilesRemoteUpdatedFlag
 } = require("./filesService");
 const { downloadMultipleFromS3 } = require("./s3StorageService");
+const { log } = require("../../../logs/index");
 
 const {
   S3_SYNC_EXCLUDE,
@@ -108,27 +109,29 @@ async function intitalFilesSyncExec() {
 async function intitalFilesSyncSpawn() {
   const transaction = await sequelize.transaction();
   try {
-    /** 1. Scan - save files to DB */
-    await scanAllToDB(ROOT_PATH, {
-      filterDirs: IGNORED_PATH
-    });
-    /** 2. Upload to S3 */
-    const syncToBucketSpawn$ = syncToBucketSpawn(ROOT_PATH, S3_BUCKET_URL, {
-      shouldDelete: true,
-      isInitial: true
-    });
-    syncToBucketSpawn$.subscribe({
-      next(data) {
-        console.log(`syncToBucketSpawn Next: ${data}`);
-      },
-      error(err) {
-        throw new Error(`Error from observable syncToBucketSpwan: ${err}`);
-      },
-      async complete(data) {
-        console.log(`syncToBucketSpawn Complete: ${data}`);
-        await transaction.commit();
-        return Promise.resolve(true);
-      }
+    return new Promise(async (resolve, reject) => {
+      /** 1. Scan - save files to DB */
+      await scanAllToDB(ROOT_PATH, {
+        filterDirs: IGNORED_PATH
+      });
+      /** 2. Upload to S3 */
+      const syncToBucketSpawn$ = syncToBucketSpawn(ROOT_PATH, S3_BUCKET_URL, {
+        shouldDelete: true,
+        isInitial: true
+      });
+      syncToBucketSpawn$.subscribe({
+        next(data) {
+          log.info(`syncToBucketSpawn Next: ${data}`);
+        },
+        error(err) {
+          reject(`Error from observable syncToBucketSpwan: ${err}`);
+        },
+        async complete(data) {
+          log.info(`syncToBucketSpawn Complete: ${data}`);
+          await transaction.commit();
+          resolve(true);
+        }
+      });
     });
   } catch (err) {
     await transaction.rollback();
