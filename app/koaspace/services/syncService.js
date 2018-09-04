@@ -6,6 +6,7 @@ const {
   toggleFilesRemoteUpdatedFlag
 } = require("./filesService");
 const { downloadMultipleFromS3 } = require("./s3StorageService");
+const { log } = require("../../../logs/index");
 
 const {
   S3_SYNC_EXCLUDE,
@@ -61,7 +62,9 @@ function syncToBucketSpawn(
   option = { shouldDelete: false, isInitial: false }
 ) {
   const deleteOption = option.shouldDelete ? "--delete" : "";
+  log.debug({ item: S3_SYNC_EXCLUDE }, "Debug for the S3_SYNC_EXCLUDE");
   const command = `aws s3 sync ${sourceDirPath} ${targetPath} ${S3_SYNC_EXCLUDE} --profile ${S3_PROFILE} ${deleteOption}`;
+  log.debug({ item: command }, "Debug for the aws s3 command");
   /** Must eliminate empty args */
   const args = command.split(" ").filter(item => {
     if (item) return true;
