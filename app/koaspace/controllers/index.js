@@ -12,13 +12,14 @@ async function appSyncInit() {
     /** Step 1: Check if account's initial flag is true, if it is run the following; If not, return false for now */
     const account = await findOneAccountByUserId(ADMIN_USER_ID);
     if (!account || !account.isInitial) return Promise.resolve(false);
-    await syncFromRemote();
     await intitalFilesSyncSpawn();
     return Promise.resolve(true);
   } catch (err) {
     throw new Error(`Error occurs in controller init: ${err.message}`);
   }
 }
+
+/** Watch , Scan to DB and Upload */
 
 module.exports = {
   appSyncInit
