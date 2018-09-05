@@ -2,6 +2,7 @@ const { recurReaddir } = require("../utils/fsPromisify");
 const { getFileStatList, getFileStat } = require("./filesService");
 const { sequelize } = require("../database/setup");
 const { Files } = require("../models/index");
+const { log } = require("../../../logs/index");
 
 /** scanAllToDB should scan all of files in the local source dir to database
  * Step 1. Read files recursively from the current dir using read stream
@@ -38,6 +39,7 @@ async function scanAllToDB(rootPath, options = {}) {
  */
 async function scanFileToDB(filePath) {
   try {
+    log.info({ filePath }, `Start scanFileToDB`);
     /**
      * 1. Get stat from the path
      * 2. Transform the stat to match props for model Files
@@ -46,8 +48,10 @@ async function scanFileToDB(filePath) {
     const fileprop = await getFileStat(filePath);
     const createdFile = await Files.create(fileprop);
     if (createdFile) {
+      log.info({ createdFile }, `Has scanFileToDB`);
       return Promise.resolve(createdFile);
     }
+    log.error({ filePath, fileprop }, `Error with scanFileToDB`);
     return Promise.reject("File cannot be created in DB");
   } catch (err) {
     throw new Error(`Error occurs in scanFileToDB: ${err.message}`);

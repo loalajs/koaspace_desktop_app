@@ -5,26 +5,87 @@ const {
 const { ADMIN_USER_ID } = require("../const");
 const { intitalFilesSyncSpawn } = require("../services/syncService");
 const { syncFromRemote } = require("../services/syncService");
+const { observeFileChange } = require("../services/filesWatchService");
+const { scanFileToDB } = require("../services/filesScanService");
+const { sequelize } = require("../database/setup");
+const { log } = require("../../../logs/index");
+const { ROOT_PATH, IGNORED_PATH } = require("../const");
+const { transformPathsFromArrayToRegexp } = require("../utils/helpers");
+
+const IGNORED_PATH_REGEXP = transformPathsFromArrayToRegexp(IGNORED_PATH);
 /** App run first time
  * 1. Scan all files in local repo
  * 2. Save all files metadata to DB
  * 3. Upload to S3
  */
-async function appSyncInit() {
+async function appInit() {
   try {
+    log.info({}, "To appInit");
     /** Step 1: Check if account's initial flag is true, if it is run the following; If not, return false for now */
     const account = await findOneAccountByUserId(ADMIN_USER_ID);
     if (!account || !account.isInitial) return Promise.resolve(false);
     const hasSync = await intitalFilesSyncSpawn();
     if (hasSync) await updateAccountByUserId(ADMIN_USER_ID, { isInitial: "0" });
+    log.info({}, "Has appInit");
     return Promise.resolve(true);
   } catch (err) {
     throw new Error(`Error occurs in controller init: ${err.message}`);
   }
 }
+// const transaction = await sequelize.transaction();
 
-/** Remote Sync, Watch , Scan to DB and Upload */
+/** appSync Watch files change , Scan to DB and Upload to S3 */
+async function appSync() {
+  try {
+    /** Sync from remote updated first to get the latest state of synchronization
+     * @TODO: can consider simply use aws s3 sync for this operation
+     */
+    const hasSyncFrom = await syncFromRemote();
+    if (!hasSyncFrom) throw new Error(`syncFromRemote return false`);
+
+    observeFileChange(ROOT_PATH, {
+      ignored: IGNORED_PATH_REGEXP,
+      ignoreInitial: true
+    }).subscribe({
+      async next({ event, filePath }) {
+        if (event === "ready") {
+          log.info(
+            { event, filePath },
+            `File System Watch has began operation from root dir: ${ROOT_PATH}`
+          );
+        } else if (event === "add") {
+          log.info(
+            { event, filePath },
+            `File System has detected ${event} event at ${filePath}`
+          );
+          /** Scan / Save to DB = */
+          const created = await scanFileToDB(filePath);
+
+          /** Upload to S3 */
+        } else if (event === "change") {
+          log.info(
+            { event, filePath },
+            `File System has detected ${event} event at ${filePath}`
+          );
+        } else if (event === "unlink") {
+          log.info(
+            { event, filePath },
+            `File System has detected ${event} event at ${filePath}`
+          );
+        } else {
+          throw new Error(`Unrecognise event value: ${event}`);
+        }
+      },
+      error(err) {
+        throw new Error(`Error occurs in observeFileCreation: ${err.message} `);
+      }
+    });
+  } catch (err) {
+    throw new Error(`Error occurs in controller appSync: ${err.message}`);
+  }
+}
 
 module.exports = {
-  appSyncInit
+  appInit,
+  appSync
 };

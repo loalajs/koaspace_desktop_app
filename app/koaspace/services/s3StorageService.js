@@ -7,7 +7,7 @@ const {
   ROOT_PATH
 } = require("../const");
 const { writeFilePromise, mkdirp, checkDir } = require("../utils/fsPromisify");
-
+const { log } = require("../../../logs/index");
 /** Setup AWS credentials */
 const credentials = new AWS.SharedIniFileCredentials({
   profile: S3_PROFILE
@@ -64,6 +64,24 @@ function uploadS3(bucketName, fileName, fileBody) {
       }
     );
   });
+}
+
+/** uploadFileToS3 take a local file path and upload it to S3
+ * @param filePath: String
+ * @param bucketName: String
+ * @TODO: Require tests
+ * Steps
+ * 1. Check if file exists, if not, throw an error
+ * 2. Read file data and stream it to s3 upload sdk function
+ */
+function uploadFileToS3(filePath, bucketName) {
+  try {
+    log.info({ filePath, bucketName }, `uploadFileToS3 Begins`);
+    const data;
+    log.info({ filePath, bucketName }, `uploadFileToS3 Has Done`);
+  } catch (err) {
+    throw new Error(`Error has occurs in uploadFileToS3: ${err.message}`);
+  }
 }
 
 /** Delete multiple objects from S3
@@ -172,5 +190,6 @@ module.exports = {
   uploadS3,
   deleteObjects,
   downloadMultipleFromS3,
-  downloadOneFromS3
+  downloadOneFromS3,
+  uploadFileToS3
 };

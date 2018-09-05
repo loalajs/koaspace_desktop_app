@@ -2,6 +2,8 @@ const fs = require("fs");
 const path = require("path");
 const rimraf = require("rimraf");
 const { execPromise } = require("./helpers");
+const { Observable } = require("rxjs");
+const { log } = require("../../../logs/index");
 
 /** Promise version of fs.readdir
  * @param filePath: String
@@ -115,6 +117,34 @@ function readFilePromise(filename) {
   });
 }
 
+/** @TODO: test require
+ * readFileStream is stream version of readFile. Combile with Observable makes
+ * it easier to be reused anywhere in the application
+ * @param filePath: String
+ */
+function readFileStream(filePath) {
+  try {
+    if (typeof filePath !== "string")
+      throw new Error(`filePath - ${filePath} type is not string;`);
+    const readStream = fs.createReadStream(filePath);
+    return new Observable(observer => {
+      readStream
+        .on("data", chunk => {
+          observer.next({ event: "data", data: chunk });
+        })
+        .on("end", () => {
+          observer.complete({ event: "end" });
+        })
+        .on("error", err => {
+          observer.error({ event: "error", err });
+        });
+    });
+  } catch (err) {
+    log.error({ err }, `Error occurs in readFileStream`);
+    throw new Error(`Error occurs in readFileStream: ${err.message}`);
+  }
+}
+
 /** Promise version of fs.unlink */
 function unlinkPromise(filename) {
   return new Promise((resolve, reject) => {
@@ -219,5 +249,6 @@ module.exports = {
   mkdirPromise,
   removeDir,
   mkdirp,
-  checkDir
+  checkDir,
+  readFileStream
 };

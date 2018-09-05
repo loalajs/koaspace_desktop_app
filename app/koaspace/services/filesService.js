@@ -308,6 +308,7 @@ async function toggleFilesRemoteUpdatedFlag(filePathList) {
   try {
     if (!Array.isArray(filePathList))
       throw new Error(`filePathList - ${filePathList} is not an array`);
+
     const foundFiles = await getFilesByPathList(filePathList);
 
     /** @NOTE Cannot use update tableName set from tableName (Unless use raw query)
