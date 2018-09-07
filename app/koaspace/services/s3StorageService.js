@@ -6,7 +6,13 @@ const {
   S3_API_VERSION,
   ROOT_PATH
 } = require("../const");
-const { writeFilePromise, mkdirp, checkDir } = require("../utils/fsPromisify");
+const {
+  writeFilePromise,
+  mkdirp,
+  checkDir,
+  readFileStreamObservable
+} = require("../utils/fsPromisify");
+const { getS3FileKey } = require("../utils/helpers");
 const { log } = require("../../../logs/index");
 /** Setup AWS credentials */
 const credentials = new AWS.SharedIniFileCredentials({
@@ -69,6 +75,7 @@ function uploadS3(bucketName, fileName, fileBody) {
 /** uploadFileToS3 take a local file path and upload it to S3
  * @param filePath: String
  * @param bucketName: String
+ * @return Promise<Boolean>
  * @TODO: Require tests
  * Steps
  * 1. Check if file exists, if not, throw an error
@@ -77,8 +84,28 @@ function uploadS3(bucketName, fileName, fileBody) {
 function uploadFileToS3(filePath, bucketName) {
   try {
     log.info({ filePath, bucketName }, `uploadFileToS3 Begins`);
-    const data;
-    log.info({ filePath, bucketName }, `uploadFileToS3 Has Done`);
+    const s3FileKey = getS3FileKey(filePath);
+    readFileStreamObservable(filePath).subscribe({
+      async next({ event, data }) {
+        if (event === "data") {
+          log.info({ event }, `Streaming data from readFileStreamObservable`);
+          await uploadS3(bucketName, s3FileKey, data);
+        }
+      },
+      complete({ event }) {
+        log.info(
+          { event },
+          `Has finished streaming data from readFileStreamObservable`
+        );
+        return Promise.resolve(true);
+      },
+      error({ event, err }) {
+        log.error({ event, err }, `Error occurs in readFileStreamObservable`);
+        throw new Error(
+          `Error occurs in readFileStreamObservable : ${err.message}`
+        );
+      }
+    });
   } catch (err) {
     throw new Error(`Error has occurs in uploadFileToS3: ${err.message}`);
   }

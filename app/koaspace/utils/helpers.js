@@ -58,6 +58,15 @@ function s3BucketFilePathbuilder(s3BucketRoot, sourceFilePath) {
   return targetFilePath;
 }
 
+/** getS3FileKey transform local file path to S3 file key
+ * by simply using path.relative(root, filePath)
+ * @param filePath : String
+ * @return s3FileKey : String
+ */
+function getS3FileKey(filePath) {
+  return path.relative(ROOT_PATH, filePath);
+}
+
 /** Get current time string in format: YYYY-MM-DD HH:MM:SS
  * @return String
  */
@@ -76,5 +85,6 @@ module.exports = {
   transformPathsFromArrayToRegexp,
   s3BucketFilePathbuilder,
   getCurrentTimeStampISO,
-  spawnObservable
+  spawnObservable,
+  getS3FileKey
 };

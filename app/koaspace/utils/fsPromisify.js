@@ -118,11 +118,12 @@ function readFilePromise(filename) {
 }
 
 /** @TODO: test require
- * readFileStream is stream version of readFile. Combile with Observable makes
+ * readFileStreamObservable is stream version of readFile. Combile with Observable makes
  * it easier to be reused anywhere in the application
  * @param filePath: String
+ * @return Observable
  */
-function readFileStream(filePath) {
+function readFileStreamObservable(filePath) {
   try {
     if (typeof filePath !== "string")
       throw new Error(`filePath - ${filePath} type is not string;`);
@@ -250,5 +251,5 @@ module.exports = {
   removeDir,
   mkdirp,
   checkDir,
-  readFileStream
+  readFileStreamObservable
 };
