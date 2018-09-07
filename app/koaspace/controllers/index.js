@@ -7,10 +7,20 @@ const { intitalFilesSyncSpawn } = require("../services/syncService");
 const { syncFromRemote } = require("../services/syncService");
 const { observeFileChange } = require("../services/filesWatchService");
 const { scanFileToDB } = require("../services/filesScanService");
-const { sequelize } = require("../database/setup");
+const {
+  uploadFileToS3,
+  deleteObjects
+} = require("../services/s3StorageService");
+const {
+  updateDBFilesFromLocal,
+  deleteOneFileByPath
+} = require("../services/filesService");
 const { log } = require("../../../logs/index");
-const { ROOT_PATH, IGNORED_PATH } = require("../const");
-const { transformPathsFromArrayToRegexp } = require("../utils/helpers");
+const { ROOT_PATH, S3_BUCKET_NAME, IGNORED_PATH } = require("../const");
+const {
+  transformPathsFromArrayToRegexp,
+  getS3FileKey
+} = require("../utils/helpers");
 
 const IGNORED_PATH_REGEXP = transformPathsFromArrayToRegexp(IGNORED_PATH);
 /** App run first time
@@ -39,6 +49,7 @@ async function appSync() {
   try {
     /** Sync from remote updated first to get the latest state of synchronization
      * @TODO: can consider simply use aws s3 sync for this operation
+     * @TODO: Trigger Lambda from Upload / Delete on the S3 to update the database
      */
     const hasSyncFrom = await syncFromRemote();
     if (!hasSyncFrom) throw new Error(`syncFromRemote return false`);
@@ -58,20 +69,43 @@ async function appSync() {
             { event, filePath },
             `File System has detected ${event} event at ${filePath}`
           );
-          /** Scan / Save to DB = */
-          const created = await scanFileToDB(filePath);
-
           /** Upload to S3 */
+          const hasUpload = await uploadFileToS3(filePath, S3_BUCKET_NAME);
+          /** Scan / Save to DB = */
+          if (hasUpload) {
+            await scanFileToDB(filePath);
+          } else {
+            log.error({ filePath, hasUpload }, `File fails to upload`);
+          }
         } else if (event === "change") {
           log.info(
             { event, filePath },
             `File System has detected ${event} event at ${filePath}`
           );
+          /** Upload to S3 */
+          const hasUpload = await uploadFileToS3(filePath, S3_BUCKET_NAME);
+          if (hasUpload) {
+            /** Update db after upload */
+            await updateDBFilesFromLocal(filePath);
+          } else {
+            log.error({ filePath, hasUpload }, `File fails to upload to S3`);
+          }
         } else if (event === "unlink") {
           log.info(
             { event, filePath },
             `File System has detected ${event} event at ${filePath}`
           );
+          /** Delete object from S3 and update in DB */
+          const s3FileKey = getS3FileKey(filePath);
+          const deleteResponse = await deleteObjects(S3_BUCKET_NAME, s3FileKey);
+          if (deleteResponse) {
+            await deleteOneFileByPath(filePath);
+          } else {
+            log.error(
+              { filePath, deleteResponse },
+              `File fails to delete from S3`
+            );
+          }
         } else {
           throw new Error(`Unrecognise event value: ${event}`);
         }
