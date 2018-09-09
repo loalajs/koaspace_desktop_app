@@ -125,18 +125,37 @@ function readFilePromise(filename) {
  */
 function readFileStreamObservable(filePath) {
   try {
-    if (typeof filePath !== "string")
+    log.info({ filePath }, `The readFileStreamObservable has began`);
+    if (typeof filePath !== "string") {
+      log.error(
+        { filePath },
+        `Error occurs in readFileStreamObservable due to invalid passing params`
+      );
       throw new Error(`filePath - ${filePath} type is not string;`);
+    }
+
     const readStream = fs.createReadStream(filePath);
     return new Observable(observer => {
       readStream
         .on("data", chunk => {
+          log.info(
+            { event: "data", chunk },
+            `Data event has been emit from readStream and receive chunk`
+          );
           observer.next({ event: "data", data: chunk });
         })
         .on("end", () => {
+          log.info(
+            { event: "end" },
+            `End event has been emitted from readStream`
+          );
           observer.complete({ event: "end" });
         })
         .on("error", err => {
+          log.error(
+            { err },
+            `Error event has been emitted from the readStream`
+          );
           observer.error({ event: "error", err });
         });
     });

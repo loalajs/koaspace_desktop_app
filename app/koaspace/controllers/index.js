@@ -33,7 +33,10 @@ async function appInit() {
     log.info({}, "To appInit");
     /** Step 1: Check if account's initial flag is true, if it is run the following; If not, return false for now */
     const account = await findOneAccountByUserId(ADMIN_USER_ID);
-    if (!account || !account.isInitial) return Promise.resolve(false);
+    if (!account || account.isInitial === "0") {
+      log.info({}, "Has appInit");
+      return Promise.resolve(false);
+    }
     const hasSync = await intitalFilesSyncSpawn();
     if (hasSync) await updateAccountByUserId(ADMIN_USER_ID, { isInitial: "0" });
     log.info({}, "Has appInit");

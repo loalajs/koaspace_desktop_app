@@ -82,9 +82,10 @@ function uploadS3(bucketName, fileName, fileBody) {
  * 2. Read file data and stream it to s3 upload sdk function
  */
 function uploadFileToS3(filePath, bucketName) {
-  try {
+  return new Promise((resolve, reject) => {
     log.info({ filePath, bucketName }, `uploadFileToS3 Begins`);
     const s3FileKey = getS3FileKey(filePath);
+    log.info({ s3FileKey, filePath }, `Get s3FileKey from filePath`);
     readFileStreamObservable(filePath).subscribe({
       async next({ event, data }) {
         if (event === "data") {
@@ -97,18 +98,14 @@ function uploadFileToS3(filePath, bucketName) {
           { event },
           `Has finished streaming data from readFileStreamObservable`
         );
-        return Promise.resolve(true);
+        resolve(true);
       },
       error({ event, err }) {
         log.error({ event, err }, `Error occurs in readFileStreamObservable`);
-        throw new Error(
-          `Error occurs in readFileStreamObservable : ${err.message}`
-        );
+        reject(`Error occurs in readFileStreamObservable : ${err.message}`);
       }
     });
-  } catch (err) {
-    throw new Error(`Error has occurs in uploadFileToS3: ${err.message}`);
-  }
+  });
 }
 
 /** Delete multiple objects from S3
