@@ -4,6 +4,7 @@ const { promiseStat } = require("../utils/fsPromisify");
 const { Op } = require("sequelize");
 const { Files } = require("../models/index");
 const { ADMIN_USER_ID } = require("../const");
+const { log } = require("../../../logs/index");
 
 /** getOneFile get the file from db table Files
  * @param filePath: string
@@ -178,6 +179,7 @@ async function deleteOneFileByPath(filePath) {
  * 3. Return the updated File instance data from DB
  *  */
 async function updateDBFilesFromLocal(filePath) {
+  log.trace({ filePath }, `updateDBFilesFromLocal begins`);
   if (typeof filePath !== "string")
     throw new Error(`filePath: ${filePath} is not a string.`);
   const transaction = await sequelize.transaction();
@@ -190,6 +192,17 @@ async function updateDBFilesFromLocal(filePath) {
       fullPath,
       User_id
     } = await getFileStat(filePath);
+    log.trace(
+      {
+        filename,
+        basedir,
+        size,
+        counter,
+        fullPath,
+        User_id
+      },
+      `updateDBFilesFromLocal getFileStat`
+    );
     const result = Files.update(
       {
         filename,
@@ -206,10 +219,22 @@ async function updateDBFilesFromLocal(filePath) {
         }
       }
     );
-
+    log.trace(
+      {
+        filename,
+        basedir,
+        size,
+        counter: counter + 1,
+        fullPath,
+        remoteUpdated: "0",
+        User_id
+      },
+      `updateDBFilesFromLocal has updated`
+    );
     await transaction.commit();
     return result;
   } catch (err) {
+    log.error({ err }, `updateDBFilesFromLocal has error`);
     await transaction.rollback();
     throw new Error(`Error occurs in updateDBFilesFromLocal: ${err.message}`);
   }

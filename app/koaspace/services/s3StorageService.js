@@ -30,6 +30,9 @@ const s3 = new AWS.S3({
   apiVersion: S3_API_VERSION
 });
 
+/** @TEST: s3upload */
+const { PassThrough } = require("stream");
+
 /** putObject put objects to the AWS s3 service;
  * This is used for string or IO object
  * @param bucketName: String
@@ -55,8 +58,10 @@ function putObject(bucketName, fileName, fileBody) {
 /** upload buffer, blob or stream
  * @param bucketName: String
  * @param fileKey: String
- * @param fileBody: Buffer | Stream */
+ * @param fileBody: Buffer | Stream
+ * @FIXME: NOT USEFUL - USE STREAMING CONCEPT */
 function uploadS3(bucketName, fileName, fileBody) {
+  log.trace({ bucketName, fileName, fileBody }, `has began uploadS3`);
   const fileKey = path.relative(ROOT_PATH, fileName);
   return new Promise((resolve, reject) => {
     s3.upload(
@@ -70,6 +75,18 @@ function uploadS3(bucketName, fileName, fileBody) {
       }
     );
   });
+}
+
+/** @FIXME: Testing; add comments */
+function uploadS3WithStream(buckeName, fileName) {
+  log.trace({ buckeName, fileName }, `uploadS3WithStream starts`);
+  const pass = new PassThrough();
+  const params = { Bucket: buckeName, Key: fileName, Body: pass };
+  s3.upload(params, (err, data) => {
+    log.trace({ err, data }, `uploadS3WithStream has uploaded`);
+  });
+
+  return pass;
 }
 
 /** uploadFileToS3 take a local file path and upload it to S3
@@ -90,12 +107,13 @@ function uploadFileToS3(filePath, bucketName) {
       async next({ event, data }) {
         if (event === "data") {
           log.info({ event }, `Streaming data from readFileStreamObservable`);
+          /** @FIXME: The following is not fully exec */
           await uploadS3(bucketName, s3FileKey, data);
         }
       },
-      complete({ event }) {
+      complete() {
         log.info(
-          { event },
+          { event: "complete" },
           `Has finished streaming data from readFileStreamObservable`
         );
         resolve(true);
@@ -215,5 +233,6 @@ module.exports = {
   deleteObjects,
   downloadMultipleFromS3,
   downloadOneFromS3,
-  uploadFileToS3
+  uploadFileToS3,
+  uploadS3WithStream // testing
 };

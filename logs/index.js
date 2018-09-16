@@ -5,7 +5,7 @@ const log = bunyan.createLogger({
   name: "koaspace_desktop",
   streams: [
     {
-      level: "debug",
+      level: "trace",
       stream: process.stdout
     },
     {
