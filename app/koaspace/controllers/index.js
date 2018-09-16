@@ -8,7 +8,7 @@ const { syncFromRemote } = require("../services/syncService");
 const { observeFileChange } = require("../services/filesWatchService");
 const { scanFileToDB } = require("../services/filesScanService");
 const {
-  uploadFileToS3,
+  uploadS3WithStream,
   deleteObjects
 } = require("../services/s3StorageService");
 const {
@@ -54,6 +54,7 @@ async function appSync() {
      * @TODO: can consider simply use aws s3 sync for this operation
      * @TODO: Trigger Lambda from Upload / Delete on the S3 to update the database
      */
+    log.trace({ adminUser: ADMIN_USER_ID }, `appSync starts`);
     const hasSyncFrom = await syncFromRemote();
     if (!hasSyncFrom) throw new Error(`syncFromRemote return false`);
 
@@ -73,7 +74,7 @@ async function appSync() {
             `File System has detected ${event} event at ${filePath}`
           );
           /** Upload to S3 */
-          const hasUpload = await uploadFileToS3(filePath, S3_BUCKET_NAME);
+          const hasUpload = await uploadS3WithStream(S3_BUCKET_NAME, filePath);
           /** Scan / Save to DB = */
           if (hasUpload) {
             await scanFileToDB(filePath);
@@ -86,7 +87,7 @@ async function appSync() {
             `File System has detected ${event} event at ${filePath}`
           );
           /** Upload to S3 */
-          const hasUpload = await uploadFileToS3(filePath, S3_BUCKET_NAME);
+          const hasUpload = await uploadS3WithStream(S3_BUCKET_NAME, filePath);
           if (hasUpload) {
             /** Update db after upload
              * @FIXME: it does not increment
@@ -102,7 +103,9 @@ async function appSync() {
           );
           /** Delete object from S3 and update in DB */
           const s3FileKey = getS3FileKey(filePath);
-          const deleteResponse = await deleteObjects(S3_BUCKET_NAME, s3FileKey);
+          const deleteResponse = await deleteObjects(S3_BUCKET_NAME, [
+            { Key: s3FileKey }
+          ]);
           if (deleteResponse) {
             await deleteOneFileByPath(filePath);
           } else {

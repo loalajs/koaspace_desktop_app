@@ -1,4 +1,5 @@
 const AWS = require("aws-sdk");
+const fs = require("fs");
 const path = require("path");
 const {
   S3_PROFILE,
@@ -6,12 +7,7 @@ const {
   S3_API_VERSION,
   ROOT_PATH
 } = require("../const");
-const {
-  writeFilePromise,
-  mkdirp,
-  checkDir,
-  readFileStreamObservable
-} = require("../utils/fsPromisify");
+const { writeFilePromise, mkdirp, checkDir } = require("../utils/fsPromisify");
 const { getS3FileKey } = require("../utils/helpers");
 const { log } = require("../../../logs/index");
 /** Setup AWS credentials */
@@ -58,8 +54,7 @@ function putObject(bucketName, fileName, fileBody) {
 /** upload buffer, blob or stream
  * @param bucketName: String
  * @param fileKey: String
- * @param fileBody: Buffer | Stream
- * @FIXME: NOT USEFUL - USE STREAMING CONCEPT */
+ * @param fileBody: Buffer | Stream */
 function uploadS3(bucketName, fileName, fileBody) {
   log.trace({ bucketName, fileName, fileBody }, `has began uploadS3`);
   const fileKey = path.relative(ROOT_PATH, fileName);
@@ -77,51 +72,24 @@ function uploadS3(bucketName, fileName, fileBody) {
   });
 }
 
-/** @FIXME: Testing; add comments */
+/** uploadS3WithStream upload file to S3 with Stream
+ * @param buckeName: String.
+ * @param fileName: String. Absolute file Path
+ * @return Promise<Boolean>
+ */
 function uploadS3WithStream(buckeName, fileName) {
   log.trace({ buckeName, fileName }, `uploadS3WithStream starts`);
-  const pass = new PassThrough();
-  const params = { Bucket: buckeName, Key: fileName, Body: pass };
-  s3.upload(params, (err, data) => {
-    log.trace({ err, data }, `uploadS3WithStream has uploaded`);
-  });
-
-  return pass;
-}
-
-/** uploadFileToS3 take a local file path and upload it to S3
- * @param filePath: String
- * @param bucketName: String
- * @return Promise<Boolean>
- * @TODO: Require tests
- * Steps
- * 1. Check if file exists, if not, throw an error
- * 2. Read file data and stream it to s3 upload sdk function
- */
-function uploadFileToS3(filePath, bucketName) {
   return new Promise((resolve, reject) => {
-    log.info({ filePath, bucketName }, `uploadFileToS3 Begins`);
-    const s3FileKey = getS3FileKey(filePath);
-    log.info({ s3FileKey, filePath }, `Get s3FileKey from filePath`);
-    readFileStreamObservable(filePath).subscribe({
-      async next({ event, data }) {
-        if (event === "data") {
-          log.info({ event }, `Streaming data from readFileStreamObservable`);
-          /** @FIXME: The following is not fully exec */
-          await uploadS3(bucketName, s3FileKey, data);
-        }
-      },
-      complete() {
-        log.info(
-          { event: "complete" },
-          `Has finished streaming data from readFileStreamObservable`
-        );
-        resolve(true);
-      },
-      error({ event, err }) {
-        log.error({ event, err }, `Error occurs in readFileStreamObservable`);
-        reject(`Error occurs in readFileStreamObservable : ${err.message}`);
-      }
+    const fileKey = getS3FileKey(fileName);
+    const rs = fs.createReadStream(fileName);
+    const pass = new PassThrough();
+    rs.pipe(pass);
+
+    const params = { Bucket: buckeName, Key: fileKey, Body: pass };
+    s3.upload(params, (err, data) => {
+      if (err) reject(err);
+      log.trace({ err, data }, `uploadS3WithStream has uploaded`);
+      resolve(true);
     });
   });
 }
@@ -132,7 +100,17 @@ function uploadFileToS3(filePath, bucketName) {
  */
 function deleteObjects(bucketName, filesKey) {
   return new Promise((resolve, reject) => {
-    if (filesKey.length === 0) reject(new Error("The files are not provided"));
+    if (!Array.isArray(filesKey) || filesKey.length === 0) {
+      log.error(
+        { filesKey },
+        `deleteObjects function's param filesKey is not array or is an empty array`
+      );
+      reject(
+        new Error(
+          `The files are not provided or filesKey : ${filesKey} - is not array`
+        )
+      );
+    }
     const params = {
       Bucket: bucketName,
       Delete: {
@@ -233,6 +211,5 @@ module.exports = {
   deleteObjects,
   downloadMultipleFromS3,
   downloadOneFromS3,
-  uploadFileToS3,
-  uploadS3WithStream // testing
+  uploadS3WithStream
 };
