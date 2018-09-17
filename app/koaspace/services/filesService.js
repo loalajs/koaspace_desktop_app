@@ -63,22 +63,21 @@ async function getFilesByPathList(filePathList) {
  */
 async function getFileStat(filePath) {
   try {
-    if (typeof filePath !== "string")
+    log.trace({}, `getFileStat begins`);
+    if (typeof filePath !== "string") {
+      log.error({}, `getFileStat error: param is not string`);
       throw new Error(`filePath: ${filePath} is not a string.`);
-    const found = await getOneFileByPath(filePath);
-    let counter = 0;
-    let remoteUpdated = "0";
-    if (found && found.counter && found.remoteUpdated) {
-      counter = found.counter;
-      remoteUpdated = found.remoteUpdated;
     }
 
+    const found = await getOneFileByPath(filePath);
+    log.trace({ found }, `getFileStat get the file from DB`);
+
     const expectedStat = {
-      counter,
+      counter: found.counter || 0,
       fullPath: filePath,
       basedir: path.dirname(filePath),
       filename: path.basename(filePath),
-      remoteUpdated,
+      remoteUpdated: found.remoteUpdated || "0",
       User_id: ADMIN_USER_ID
     };
     const { size } = await promiseStat(filePath);
@@ -184,14 +183,13 @@ async function updateDBFilesFromLocal(filePath) {
     throw new Error(`filePath: ${filePath} is not a string.`);
   const transaction = await sequelize.transaction();
   try {
-    const {
-      filename,
-      basedir,
-      size,
-      counter,
-      fullPath,
-      User_id
-    } = await getFileStat(filePath);
+    const fileParam = await getFileStat(filePath);
+    log.debug(
+      { counterBeforeAddOne: fileParam.counter },
+      `Counter before increment`
+    );
+    fileParam.counter += 1;
+    const { filename, basedir, size, counter, fullPath, User_id } = fileParam;
     log.trace(
       {
         filename,
@@ -201,14 +199,14 @@ async function updateDBFilesFromLocal(filePath) {
         fullPath,
         User_id
       },
-      `updateDBFilesFromLocal getFileStat`
+      `updateDBFilesFromLocal getFileStat with updated counter`
     );
     const result = Files.update(
       {
         filename,
         basedir,
         size,
-        counter: counter + 1,
+        counter,
         fullPath,
         remoteUpdated: "0",
         User_id
@@ -221,15 +219,9 @@ async function updateDBFilesFromLocal(filePath) {
     );
     log.trace(
       {
-        filename,
-        basedir,
-        size,
-        counter: counter + 1,
-        fullPath,
-        remoteUpdated: "0",
-        User_id
+        result
       },
-      `updateDBFilesFromLocal has updated`
+      `updateDBFilesFromLocal has updated with result`
     );
     await transaction.commit();
     return result;

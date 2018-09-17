@@ -89,6 +89,10 @@ async function appSync() {
           /** Upload to S3 */
           const hasUpload = await uploadS3WithStream(S3_BUCKET_NAME, filePath);
           if (hasUpload) {
+            log.info(
+              { hasUpload },
+              `${filePath} has uploaded to S3. now begin the updateDBFilesFromLocal`
+            );
             /** Update db after upload
              * @FIXME: it does not increment
              */
