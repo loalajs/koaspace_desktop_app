@@ -93,9 +93,6 @@ async function appSync() {
               { hasUpload },
               `${filePath} has uploaded to S3. now begin the updateDBFilesFromLocal`
             );
-            /** Update db after upload
-             * @FIXME: it does not increment
-             */
             await updateDBFilesFromLocal(filePath);
           } else {
             log.error({ filePath, hasUpload }, `File fails to upload to S3`);

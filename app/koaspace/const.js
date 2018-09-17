@@ -5,8 +5,8 @@ const NODE_ENV = process.env.NODE_ENV ? process.env.NODE_ENV : "development";
 
 const ROOT_PATH = process.cwd();
 const S3_BUCKET_URL = process.env.S3_BUCKET_URL;
-const S3_SYNC_EXCLUDE = `--exclude *node_modules/* --exclude *.git/* --exclude *env`;
-const IGNORED_PATH = ["node_modules", ".git", "env"];
+const S3_SYNC_EXCLUDE = `--exclude *node_modules/* --exclude *.git/* --exclude *env --exclude *.DS_Store`;
+const IGNORED_PATH = ["node_modules", ".git", "env", ".DS_Store"];
 const S3_PROFILE = process.env.S3_PROFILE;
 const S3_REGION = process.env.S3_REGION;
 const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
