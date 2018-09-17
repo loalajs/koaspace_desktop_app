@@ -1,10 +1,35 @@
 @import "custom";
 @import "~bootstrap/scss/bootstrap";
 
-html {
-  font-family: 'Montserrat', sans-serif;
-}
 
-#welcome_msg {
-  color: blue;
-}
+// .banner-area {
+// 	background: url(../img/banner.jpg) no-repeat center center/cover;
+// 	.overlay-bg {
+// 		background: -moz-linear-gradient(left, rgba(60,64,143,.95) 0%, rgba(91,97,207,.95) 100%);
+// 		background: -webkit-linear-gradient(left, rgba(60,64,143,.95) 0%,rgba(91,97,207,.95) 100%);
+// 		background: linear-gradient(to right, rgba(60,64,143,.95) 0%,rgba(91,97,207,.95) 100%);
+// 	}
+// }
+
+
+// @import "bootstrap/functions";
+// @import "bootstrap/variables";
+
+//
+// Grid mixins
+//
+
+// @import "bootstrap/mixins/breakpoints";
+
+
+// including variables and mixins
+@import "theme/variables";
+@import "theme/mixins";
+@import "theme/flexbox";
+@import "theme/reset";
+
+
+// Custom Scss
+@import "theme/elements";
+@import "theme/header";
+@import "theme/home";

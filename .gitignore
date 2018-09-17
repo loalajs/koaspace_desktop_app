@@ -3,3 +3,4 @@ env
 archive
 dbconfig.json
 *.log
+client/dist

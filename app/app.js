@@ -1,7 +1,8 @@
 import { app, BrowserWindow } from "electron";
 
 const path = require("path");
-const koaspace = require("./koaspace/index.js");
+const { Koaspace } = require("./koaspace/index.js");
+const { log } = require("../logs/index");
 
 const htmlFilePath = path.resolve(__dirname, "..", "client", "dist");
 const squirrel = require("electron-squirrel-startup");
@@ -54,10 +55,11 @@ app.on("window-all-closed", () => {
 app.on("activate", async () => {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
+  log.info({}, `App Starts`);
   if (mainWindow === null) {
     createWindow();
   }
-  await koaspace.init();
+  // await koaspace.init();
 });
 
 // In this file you can include the rest of your app's specific main process
