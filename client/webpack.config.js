@@ -5,10 +5,13 @@ const precss = require("precss");
 const autoprefixer = require("autoprefixer");
 
 module.exports = {
-  entry: path.resolve(__dirname, "src", "index.jsx"),
+  entry: {
+    renderer: path.resolve(__dirname, "src", "renderer", "index.jsx"),
+    background: path.resolve(__dirname, "src", "background", "background.jsx")
+  },
   output: {
-    path: path.resolve(__dirname, "dist", "renderer"),
-    filename: "index.bundle.js"
+    path: path.resolve(__dirname, "dist"),
+    filename: "[name].bundle.js"
   },
   module: {
     rules: [
@@ -61,8 +64,14 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: path.resolve(__dirname, "src", "index.html"),
-      filename: "index.html"
+      template: path.resolve(__dirname, "src", "renderer", "index.html"),
+      filename: "index.html",
+      chunks: ["renderer"]
+    }),
+    new HtmlWebpackPlugin({
+      template: path.resolve(__dirname, "src", "background", "background.html"),
+      filename: "background.html",
+      chunks: ["background"]
     }),
     new ExtractTextPlugin({
       filename: "style.css",

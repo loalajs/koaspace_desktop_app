@@ -4,17 +4,17 @@ const path = require("path");
 const { Koaspace } = require("./koaspace/index.js");
 const { log } = require("../logs/index");
 
-const mainHtmlFileDirPath = path.resolve(
+const mainHtmlFilePath = path.resolve(
   process.cwd(),
   "client",
   "dist",
-  "renderer"
+  "index.html"
 );
-const backgroundHtmlFileDirPath = path.resolve(
+const backgroundHtmlFilePath = path.resolve(
   process.cwd(),
   "client",
   "dist",
-  "background"
+  "background.html"
 );
 const squirrel = require("electron-squirrel-startup");
 
@@ -41,7 +41,7 @@ const createMainWindow = () => {
     height: 600
   });
   /** Load html file */
-  win.loadURL(`file://${mainHtmlFileDirPath}/index.html`);
+  win.loadURL(`file://${mainHtmlFilePath}`);
   /** Emitted when the window is closed.
    Dereference the window object, usually you would store windows
    in an array if your app supports multi windows, this is the time
@@ -55,7 +55,7 @@ const createBackgroundWindow = () => {
     show: false
   });
   /** Load html file */
-  win.loadURL(`file://${backgroundHtmlFileDirPath}/index.html`);
+  win.loadURL(`file://${backgroundHtmlFilePath}`);
   /** Emitted when the window is closed.
    Dereference the window object, usually you would store windows
    in an array if your app supports multi windows, this is the time
