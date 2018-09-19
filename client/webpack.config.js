@@ -1,9 +1,14 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
 const precss = require("precss");
 const autoprefixer = require("autoprefixer");
 
+const assetsPath = path.resolve(__dirname, "src", "assets");
+const distPath = path.resolve(__dirname, "dist");
+
+/** @FIXME: SASS URL Path does not resolve correctly */
 module.exports = {
   entry: {
     renderer: path.resolve(__dirname, "src", "renderer", "index.jsx"),
@@ -12,6 +17,11 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, "dist"),
     filename: "[name].bundle.js"
+  },
+  resolve: {
+    alias: {
+      assets: path.resolve(__dirname, "./assets")
+    }
   },
   module: {
     rules: [
@@ -27,7 +37,8 @@ module.exports = {
         use: ExtractTextPlugin.extract({
           use: [
             {
-              loader: "css-loader"
+              loader: "css-loader",
+              options: { url: false }
             },
             {
               // postcss-loader is for bootstrap to work
@@ -55,8 +66,10 @@ module.exports = {
         test: /\.(png|jpe?g|gif)$/,
         use: [
           {
-            loader: "file-loader",
-            options: {} // do not remove
+            loader: "file-loader?name=img/[name].[ext]",
+            options: {
+              emitFile: false
+            }
           }
         ]
       }
@@ -76,6 +89,9 @@ module.exports = {
     new ExtractTextPlugin({
       filename: "style.css",
       disable: process.env.NODE_ENV === "development"
-    })
+    }),
+    new CopyWebpackPlugin([
+      { from: assetsPath, to: path.resolve(distPath, "assets") }
+    ])
   ]
 };

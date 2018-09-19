@@ -4,6 +4,7 @@ const path = require("path");
 const { Koaspace } = require("./koaspace/index.js");
 const { log } = require("../logs/index");
 
+const koaspace = Koaspace();
 const mainHtmlFilePath = path.resolve(
   process.cwd(),
   "client",
@@ -69,6 +70,7 @@ const createBackgroundWindow = () => {
 // Some APIs can only be used after this event occurs.
 app.on("ready", () => {
   mainWindow = createMainWindow();
+  backgroundWindow = createBackgroundWindow();
 });
 
 // Quit when all windows are closed.
@@ -87,11 +89,28 @@ app.on("activate", async () => {
   if (mainWindow === null) {
     mainWindow = createMainWindow();
   }
+
+  if (backgroundWindow === null) {
+    backgroundWindow = createBackgroundWindow();
+  }
 });
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
-ipcMain.on("asynchronous-message", (event, arg) => {
-  console.log(arg); // prints "ping"
-  event.sender.send("asynchronous-reply", "pong");
+ipcMain.on("buttonClick", async (event, arg) => {
+  log.info({ arg }, `Message from renderer received.`); // prints "ping"
+  mainWindow.webContents.send(
+    "responseOnButtonClick",
+    "Message from main process."
+  );
+
+  /** @FIXME: this does not work */
+  backgroundWindow.webContents.send("initKoaspace", Koaspace);
+
+  await koaspace.init();
+  await koaspace.sync();
+});
+
+ipcMain.on("onKoaspace", (event, arg) => {
+  log.info({ arg }, `Response from Koaspace`);
 });

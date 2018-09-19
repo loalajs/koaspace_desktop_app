@@ -16,10 +16,10 @@ class Index extends React.Component {
     // Add a reference to this function.
     this.funcName = "handleButtonClick";
     console.log(`Button is clicked: ${event}`);
-    ipcRenderer.on("asynchronous-reply", (event, arg) => {
+    ipcRenderer.on("responseOnButtonClick", (__, arg) => {
       console.log(arg); // prints "pong"
     });
-    ipcRenderer.send("asynchronous-message", "ping");
+    ipcRenderer.send("buttonClick", "Message from renderer process.");
   }
 
   render() {
