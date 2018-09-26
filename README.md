@@ -1,5 +1,5 @@
 # Koaspace Desktop App
-![alt text](https://s3-ap-southeast-1.amazonaws.com/loala-image/koaspace001.png =400x300)
+![Koaspce](./koaspace001.png)
 Koaspace Desktop synchronizes files in the personal computer over the cloud like Dropbox using Amazon Web Services' on-demand pricing model.
 
   - ElectronJS Desktop App that allows building app for multiple platforms from MacOS to Window
